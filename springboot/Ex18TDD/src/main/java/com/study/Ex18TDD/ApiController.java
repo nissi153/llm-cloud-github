@@ -6,6 +6,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+//loginAction() 함수 테스트 한다?       1000개라면?  자동화한다면?
+// 휴먼 1인이 필요
+// 1. App 실행
+// 2. Postman or JS 로 HTTP 요청한다.
+// 3. 응답을 휴먼 Eye로 확인한다.
+
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor

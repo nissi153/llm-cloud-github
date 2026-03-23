@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode //객체 비교할 때 사용하는 함수
 public class MemberDto {
   private String loginId;
   private String loginPw;
