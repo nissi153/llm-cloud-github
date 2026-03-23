@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>수강과목 관리</title>
+    <link rel="stylesheet" href="courses.css" />
+  </head>
+  <body class="page">
+    <div class="container">
+      <header class="header headerRow">
+        <div>
+          <h1 class="title">수강과목 관리</h1>
+          <p class="subtitle">과목을 추가/수정/삭제할 수 있습니다</p>
+        </div>
+        <a class="ghostLinkButton" href="courses.html">메인으로</a>
+      </header>
+
+      <main class="manageLayout">
+        <section class="section" aria-labelledby="formTitle">
+          <h2 class="sectionTitle" id="formTitle">과목 입력</h2>
+
+          <form id="courseForm" class="formGrid">
+            <input type="hidden" id="courseId" />
+
+            <label class="field">
+              <span class="fieldLabel">과목명</span>
+              <input id="name" class="textInput" required autocomplete="off" />
+            </label>
+
+            <label class="field">
+              <span class="fieldLabel">코드</span>
+              <input id="code" class="textInput" required autocomplete="off" />
+            </label>
+
+            <label class="field">
+              <span class="fieldLabel">교수</span>
+              <input id="professor" class="textInput" required autocomplete="off" />
+            </label>
+
+            <label class="field">
+              <span class="fieldLabel">학점</span>
+              <input
+                id="credits"
+                class="textInput"
+                type="number"
+                min="1"
+                step="1"
+                required
+              />
+            </label>
+
+            <label class="field fieldFull">
+              <span class="fieldLabel">시간</span>
+              <input id="time" class="textInput" required autocomplete="off" />
+            </label>
+
+            <label class="field">
+              <span class="fieldLabel">정원</span>
+              <input
+                id="capacity"
+                class="textInput"
+                type="number"
+                min="1"
+                step="1"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span class="fieldLabel">수강인원</span>
+              <input
+                id="enrolled"
+                class="textInput"
+                type="number"
+                min="0"
+                step="1"
+                required
+              />
+            </label>
+
+            <div class="actions fieldFull">
+              <button id="submitBtn" class="primaryButton" type="submit">
+                추가
+              </button>
+              <button id="cancelBtn" class="secondaryButton" type="button" hidden>
+                수정 취소
+              </button>
+              <button id="resetBtn" class="dangerButton" type="button">
+                전체 초기화
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section class="section" aria-labelledby="listTitle">
+          <h2 class="sectionTitle" id="listTitle">과목 목록</h2>
+          <div class="tableWrap">
+            <table class="table" aria-describedby="listTitle">
+              <thead>
+                <tr>
+                  <th>과목명</th>
+                  <th>코드</th>
+                  <th>교수</th>
+                  <th>학점</th>
+                  <th>시간</th>
+                  <th>정원</th>
+                  <th>수강</th>
+                  <th class="tableActionsCol">관리</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+          </div>
+          <div id="empty" class="emptyState" hidden>등록된 과목이 없습니다</div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      /** @typedef {{id:string,name:string,code:string,professor:string,credits:number,time:string,capacity:number,enrolled:number}} Course */
+
+      const STORAGE_KEY = "courses_manage_data_v1";
+
+      function newId() {
+        if (globalThis.crypto && typeof crypto.randomUUID === "function") {
+          return crypto.randomUUID();
+        }
+        return `id_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      }
+
+      /** @returns {Course[]} */
+      function seedCourses() {
+        return [
+          {
+            id: newId(),
+            name: "자료구조",
+            code: "CS201",
+            professor: "김철수",
+            credits: 3,
+            time: "월/수 10:30-12:00",
+            capacity: 40,
+            enrolled: 35,
+          },
+          {
+            id: newId(),
+            name: "알고리즘",
+            code: "CS301",
+            professor: "이영희",
+            credits: 3,
+            time: "화/목 13:00-14:30",
+            capacity: 35,
+            enrolled: 30,
+          },
+          {
+            id: newId(),
+            name: "데이터베이스",
+            code: "CS302",
+            professor: "박민수",
+            credits: 3,
+            time: "월/수 14:00-15:30",
+            capacity: 45,
+            enrolled: 45,
+          },
+          {
+            id: newId(),
+            name: "운영체제",
+            code: "CS303",
+            professor: "정수진",
+            credits: 3,
+            time: "화/목 09:00-10:30",
+            capacity: 40,
+            enrolled: 28,
+          },
+          {
+            id: newId(),
+            name: "컴퓨터네트워크",
+            code: "CS304",
+            professor: "최준호",
+            credits: 3,
+            time: "월/수 16:00-17:30",
+            capacity: 35,
+            enrolled: 20,
+          },
+          {
+            id: newId(),
+            name: "소프트웨어공학",
+            code: "CS305",
+            professor: "강지훈",
+            credits: 3,
+            time: "화/목 15:00-16:30",
+            capacity: 30,
+            enrolled: 25,
+          },
+        ];
+      }
+
+      /** @returns {Course[]} */
+      function loadCourses() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return seedCourses();
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return seedCourses();
+          return parsed;
+        } catch {
+          return seedCourses();
+        }
+      }
+
+      /** @param {Course[]} next */
+      function saveCourses(next) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      }
+
+      /** @param {unknown} v */
+      function asInt(v) {
+        const n = typeof v === "string" ? Number(v) : Number(v);
+        return Number.isFinite(n) ? Math.trunc(n) : 0;
+      }
+
+      /** @param {Course} course */
+      function validateCourse(course) {
+        if (!course.name.trim()) return "과목명을 입력하세요";
+        if (!course.code.trim()) return "코드를 입력하세요";
+        if (!course.professor.trim()) return "교수를 입력하세요";
+        if (!course.time.trim()) return "시간을 입력하세요";
+        if (course.credits < 1) return "학점은 1 이상이어야 합니다";
+        if (course.capacity < 1) return "정원은 1 이상이어야 합니다";
+        if (course.enrolled < 0) return "수강인원은 0 이상이어야 합니다";
+        if (course.enrolled > course.capacity) return "수강인원은 정원을 초과할 수 없습니다";
+        return null;
+      }
+
+      const state = {
+        /** @type {Course[]} */
+        courses: loadCourses(),
+        /** @type {string|null} */
+        editingId: null,
+      };
+
+      const el = {
+        form: document.getElementById("courseForm"),
+        id: document.getElementById("courseId"),
+        name: document.getElementById("name"),
+        code: document.getElementById("code"),
+        professor: document.getElementById("professor"),
+        credits: document.getElementById("credits"),
+        time: document.getElementById("time"),
+        capacity: document.getElementById("capacity"),
+        enrolled: document.getElementById("enrolled"),
+        submitBtn: document.getElementById("submitBtn"),
+        cancelBtn: document.getElementById("cancelBtn"),
+        resetBtn: document.getElementById("resetBtn"),
+        tbody: document.getElementById("tbody"),
+        empty: document.getElementById("empty"),
+      };
+
+      function clearForm() {
+        state.editingId = null;
+        el.id.value = "";
+        el.name.value = "";
+        el.code.value = "";
+        el.professor.value = "";
+        el.credits.value = "3";
+        el.time.value = "";
+        el.capacity.value = "30";
+        el.enrolled.value = "0";
+        el.submitBtn.textContent = "추가";
+        el.cancelBtn.hidden = true;
+      }
+
+      /** @param {Course} c */
+      function fillFormForEdit(c) {
+        state.editingId = c.id;
+        el.id.value = c.id;
+        el.name.value = c.name;
+        el.code.value = c.code;
+        el.professor.value = c.professor;
+        el.credits.value = String(c.credits);
+        el.time.value = c.time;
+        el.capacity.value = String(c.capacity);
+        el.enrolled.value = String(c.enrolled);
+        el.submitBtn.textContent = "수정 저장";
+        el.cancelBtn.hidden = false;
+        el.name.focus();
+      }
+
+      /** @param {string} id */
+      function removeCourse(id) {
+        state.courses = state.courses.filter((c) => c.id !== id);
+        saveCourses(state.courses);
+        if (state.editingId === id) clearForm();
+        render();
+      }
+
+      /** @param {Course} c */
+      function upsertCourse(c) {
+        const error = validateCourse(c);
+        if (error) {
+          alert(error);
+          return;
+        }
+
+        const isEdit = Boolean(state.editingId);
+        if (isEdit) {
+          state.courses = state.courses.map((x) => (x.id === c.id ? c : x));
+        } else {
+          state.courses = [c, ...state.courses];
+        }
+        saveCourses(state.courses);
+        clearForm();
+        render();
+      }
+
+      /** @param {Course} c */
+      function row(c) {
+        const tr = document.createElement("tr");
+
+        function td(text) {
+          const cell = document.createElement("td");
+          cell.textContent = text;
+          return cell;
+        }
+
+        tr.appendChild(td(c.name));
+        tr.appendChild(td(c.code));
+        tr.appendChild(td(c.professor));
+        tr.appendChild(td(String(c.credits)));
+        tr.appendChild(td(c.time));
+        tr.appendChild(td(String(c.capacity)));
+        tr.appendChild(td(String(c.enrolled)));
+
+        const actions = document.createElement("td");
+        actions.className = "tableActions";
+
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "miniButton";
+        editBtn.textContent = "수정";
+        editBtn.addEventListener("click", () => fillFormForEdit(c));
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "miniDangerButton";
+        delBtn.textContent = "삭제";
+        delBtn.addEventListener("click", () => {
+          if (!confirm(`"${c.name}" 과목을 삭제할까요?`)) return;
+          removeCourse(c.id);
+        });
+
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+        tr.appendChild(actions);
+
+        return tr;
+      }
+
+      function render() {
+        el.tbody.innerHTML = "";
+        const hasAny = state.courses.length > 0;
+        el.empty.hidden = hasAny;
+        if (!hasAny) return;
+
+        state.courses.forEach((c) => el.tbody.appendChild(row(c)));
+      }
+
+      el.form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const id = state.editingId ?? newId();
+        /** @type {Course} */
+        const course = {
+          id,
+          name: String(el.name.value ?? "").trim(),
+          code: String(el.code.value ?? "").trim(),
+          professor: String(el.professor.value ?? "").trim(),
+          credits: asInt(el.credits.value),
+          time: String(el.time.value ?? "").trim(),
+          capacity: asInt(el.capacity.value),
+          enrolled: asInt(el.enrolled.value),
+        };
+
+        upsertCourse(course);
+      });
+
+      el.cancelBtn.addEventListener("click", () => clearForm());
+
+      el.resetBtn.addEventListener("click", () => {
+        if (!confirm("저장된 과목을 전부 초기화할까요?")) return;
+        state.courses = seedCourses();
+        saveCourses(state.courses);
+        clearForm();
+        render();
+      });
+
+      clearForm();
+      render();
+    </script>
+  </body>
+</html>

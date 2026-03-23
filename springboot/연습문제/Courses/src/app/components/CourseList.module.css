@@ -1,0 +1,70 @@
+.courseItem {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+
+.courseItem:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #d0d0d0;
+}
+
+.courseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.courseInfo {
+  flex: 1;
+}
+
+.courseName {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1a1a1a;
+}
+
+.courseCode {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.courseDetails {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: #666;
+}
+
+.courseDetail {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.addButton {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.addButton:hover {
+  background: #1d4ed8;
+}
+
+.addButton:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}

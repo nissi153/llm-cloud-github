@@ -1,0 +1,427 @@
+/* App.module.css + (CourseList/SelectedCourses) 스타일을 하나로 합친 파일 */
+.page {
+  --muted: #666;
+  --text: #1a1a1a;
+  --border: #e5e5e5;
+  --brand: #2563eb;
+  --brandHover: #1d4ed8;
+  --danger: #ef4444;
+  --dangerBg: #fee2e2;
+  --soft: #f9fafb;
+
+  min-height: 100vh;
+  background: #fff;
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial,
+    "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: var(--text);
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.sectionSingle {
+  grid-column: 1 / -1;
+}
+
+.section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Main/Manage 공통 버튼 ===== */
+.primaryLinkButton,
+.ghostLinkButton,
+.primaryButton,
+.secondaryButton,
+.dangerButton,
+.miniButton,
+.miniDangerButton {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  user-select: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.primaryLinkButton,
+.primaryButton {
+  background: var(--brand);
+  color: #fff;
+}
+.primaryLinkButton:hover,
+.primaryButton:hover {
+  background: var(--brandHover);
+}
+
+.ghostLinkButton {
+  background: #fff;
+  color: var(--text);
+  border-color: var(--border);
+}
+.ghostLinkButton:hover {
+  border-color: #d0d0d0;
+  background: #f8fafc;
+}
+
+.secondaryButton {
+  background: #fff;
+  color: var(--text);
+  border-color: var(--border);
+}
+.secondaryButton:hover {
+  background: #f8fafc;
+  border-color: #d0d0d0;
+}
+
+.dangerButton,
+.miniDangerButton {
+  background: #fff;
+  color: var(--danger);
+  border-color: var(--dangerBg);
+}
+.dangerButton:hover,
+.miniDangerButton:hover {
+  background: var(--dangerBg);
+}
+
+.miniButton,
+.miniDangerButton {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.miniButton {
+  background: #fff;
+  border-color: var(--border);
+  color: var(--text);
+}
+.miniButton:hover {
+  background: #f8fafc;
+  border-color: #d0d0d0;
+}
+
+/* ===== Manage 레이아웃 ===== */
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
+.manageLayout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .manageLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.textInput {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.textInput:focus {
+  border-color: rgba(37, 99, 235, 0.6);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* ===== Manage 테이블 ===== */
+.tableWrap {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 780px;
+  background: #fff;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  font-size: 13px;
+}
+
+.table thead th {
+  background: #f8fafc;
+  font-size: 12px;
+  color: var(--muted);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.tableActionsCol {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.tableActions {
+  display: inline-flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* ===== CourseList.module.css ===== */
+.courseItem {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+
+.courseItem:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #d0d0d0;
+}
+
+.courseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.courseInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.courseName {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--text);
+}
+
+.courseCode {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 8px 0;
+}
+
+.courseDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.courseDetail {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.addButton {
+  background: var(--brand);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex: 0 0 auto;
+}
+
+.addButton:hover {
+  background: var(--brandHover);
+}
+
+.addButton:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+/* ===== SelectedCourses.module.css ===== */
+.selectedItem {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: var(--soft);
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+.itemName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 4px 0;
+}
+
+.itemCode {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.removeButton {
+  background: transparent;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 18px;
+  line-height: 1;
+  transition: background 0.2s;
+  flex: 0 0 auto;
+}
+
+.removeButton:hover {
+  background: var(--dangerBg);
+}
+
+.itemDetails {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.summary {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid var(--border);
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+

@@ -1327,10 +1327,11 @@
     const options = document.querySelectorAll(".movie-option");
     options.forEach((option) => {
       option.addEventListener("click", (e) => {
-        e.preventDefault();
+        e.preventDefault(); //기본 이벤트 막는다.
       });
     });
 
+    //탭 활성화/비활성화
     const toggle = (element) => {
       const options = document.querySelectorAll(".movie-option");
       options.forEach((option) => {

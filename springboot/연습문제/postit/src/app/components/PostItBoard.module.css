@@ -1,0 +1,120 @@
+.wrapper {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #f0ede6;
+}
+
+/* 헤더 */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  height: 60px;
+  background: #2c2c2c;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.logoIcon {
+  font-size: 22px;
+}
+
+.logoText {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.info {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  min-width: 60px;
+  text-align: right;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: #FFD600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2c2c2c;
+  transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+.addBtn:hover {
+  background: #FFE033;
+  transform: translateY(-1px);
+}
+
+.addBtn:active {
+  transform: translateY(0);
+}
+
+.addBtn span:first-child {
+  font-size: 20px;
+  line-height: 1;
+  margin-top: -1px;
+}
+
+.addBtnLabel {
+  font-size: 14px;
+}
+
+/* 보드 */
+.board {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 도트 격자 배경 */
+.gridBg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(0,0,0,0.12) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+/* 빈 상태 */
+.empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+  color: rgba(0,0,0,0.3);
+  font-size: 15px;
+}
+
+.empty p:first-child {
+  font-size: 52px;
+  margin-bottom: 8px;
+}
+
+.empty strong {
+  color: rgba(0,0,0,0.5);
+}

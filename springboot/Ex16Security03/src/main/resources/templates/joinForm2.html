@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입 화면</title>
+</head>
+<body>
+
+<h1>회원가입 화면</h1>
+
+<form action="joinAction" method="post" name="userInfo" onsubmit="return validate()">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <table border="1">
+        <tr>
+            <td>아이디</td>
+            <td>
+                <input type="text" name="username" id="username" maxlength="20" />
+            </td>
+        </tr>
+        <tr>
+            <td>비번</td>
+            <td>
+                <input type="text" name="password" id="password" maxlength="20" />
+            </td>
+        </tr>
+        <tr>
+            <td>이름</td>
+            <td>
+                <input type="text" name="nick_name" id="nick_name" maxlength="50" />
+            </td>
+        </tr>
+        <tr>
+            <td>가입일자</td>
+            <td>
+                <input type="date" name="join_date" id="join_date" />
+            </td>
+        </tr>
+        <tr>
+            <td>권한</td>
+            <td>
+                <select name="user_role" id="user_role" required>
+                    <option value="">권한을 선택해주세요</option>
+                    <option value="ROLE_USER">회원</option>
+                    <option value="ROLE_ADMIN">관리자</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" align="center">
+                <input type="submit" value="회원가입" />
+            </td>
+        </tr>
+    </table>
+</form>
+
+<script>
+    function validate() {
+        const username  = document.getElementById("username").value.trim();
+        const password  = document.getElementById("password").value.trim();
+        const nick_name = document.getElementById("nick_name").value.trim();
+        const join_date = document.getElementById("join_date").value;
+        const user_role = document.getElementById("user_role").value;
+
+        // username: 8자 이상, 영소문자 1개↑, 영대문자 1개↑, 특수문자 1개↑
+        if (username.length < 8)                    { alert("아이디는 8자 이상이어야 합니다.");         return false; }
+        if (!/[a-z]/.test(username))                { alert("아이디에 영소문자를 1개 이상 포함해주세요."); return false; }
+        if (!/[A-Z]/.test(username))                { alert("아이디에 영대문자를 1개 이상 포함해주세요."); return false; }
+        if (!/[!@#$%^&*]/.test(username))           { alert("아이디에 특수문자를 1개 이상 포함해주세요."); return false; }
+
+        // password: 4자 이상
+        if (password.length < 4)                    { alert("비밀번호는 4자 이상이어야 합니다.");        return false; }
+
+        if (!nick_name) { alert("이름을 입력해주세요.");     return false; }
+        if (!join_date) { alert("가입일자를 선택해주세요."); return false; }
+        if (!user_role) { alert("권한을 선택해주세요.");     return false; }
+
+        return true;
+    }
+</script>
+
+</body>
+</html>

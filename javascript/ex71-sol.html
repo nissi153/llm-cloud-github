@@ -66,12 +66,19 @@
         }
       }
 
-      // 초기화 함수
+      // 초기화 함수(clear()불가)
       function resetFields() {
         document.getElementById("num1").value = "";
         document.getElementById("num2").value = "";
         document.getElementById("result").value = "";
       }
+
+      window.onload = () => {
+        let buttons = document.getElementsByClassName("btn-calc");
+        buttons[0].onclick = () => {
+          alert("클릭");
+        };
+      };
     </script>
   </head>
   <body>

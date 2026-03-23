@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>자판기 프로그램</title>
+</head>
+<body>
+<div id="wrap">
+    <h2>자판기 프로그램</h2>
+    <div>
+        <h4>자판기 상품목록</h4>
+        <div>
+            <label>한글</label>
+            <input type="checkbox"/>
+            <label>영어</label>
+        </div>
+    </div>
+    <div>
+        <table border="1">
+            <thead>
+            <th>번호</th>
+            <th>상품명</th>
+            <th>가격</th>
+            <th>유통기한</th>
+            <th>수정</th>
+            <th>삭제</th>
+            </thead>
+            <tbody>
+            <!--  list는 List<Product>          -->
+            <tr th:each="product, status : ${ list }">
+                <td th:text="${ status.count }">1</td>
+                <td th:text="${ product.productName }">불고기버거</td>
+                <td th:text="${ product.productPrice }">2000</td>
+                <td th:text="${ product.productLimitDate }">2026-12-23</td>
+                <td>
+                    <button type="button"
+                            th:onclick="|location.href='/updateForm?productNo=${product.productNo}' |">수정</button>
+                </td>
+                <td>
+                     <!--  GET 방식으로  -->
+                    <button type="button"
+                            th:onclick="|location.href='/deleteAction?productNo=${product.productNo}' |">삭제</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <h4 th:text="|총 ${ list.size() }개의 상품이 있습니다.|">총 1개의 상품이 있습니다.</h4>
+    </div>
+    <div>
+        <button type="button" onclick="location.href='/addForm' ">상품 추가하기</button>
+    </div>
+</div>
+</body>
+</html>

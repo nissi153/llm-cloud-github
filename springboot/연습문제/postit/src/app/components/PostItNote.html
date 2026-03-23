@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post-it Note</title>
+    <link rel="stylesheet" href="./PostItNote.css" />
+  </head>
+  <body style="margin: 0; padding: 24px; background: #f0ede6;">
+    <!-- 단일 노트 템플릿 (정적 HTML) -->
+    <div
+      class="postit-note"
+      style="position: relative; left: 0; top: 0; background-color: #fff176; transform: rotate(-2deg);"
+    >
+      <div class="postit-noteHeader">
+        <div class="postit-noteLines" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <button class="postit-deleteBtn" type="button" title="삭제">✕</button>
+      </div>
+      <textarea
+        class="postit-textarea"
+        placeholder="메모를 입력하세요..."
+        spellcheck="false"
+      >🎉 포스트잇 앱에 오신 것을 환영해요!
+
+드래그해서 옮겨보세요.</textarea>
+    </div>
+  </body>
+</html>
+

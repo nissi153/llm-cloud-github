@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post-it</title>
+    <style>
+      /* ===== PostItBoard.css ===== */
+      .postit-wrapper {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: #f0ede6;
+      }
+
+      /* 헤더 */
+      .postit-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 0 24px;
+        height: 60px;
+        background: #2c2c2c;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        flex-shrink: 0;
+        z-index: 100;
+      }
+
+      .postit-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+      }
+
+      .postit-logoIcon {
+        font-size: 22px;
+      }
+
+      .postit-logoText {
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.5px;
+      }
+
+      .postit-info {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.5);
+        min-width: 60px;
+        text-align: right;
+      }
+
+      .postit-addBtn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        background: #ffd600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 15px;
+        font-weight: 700;
+        color: #2c2c2c;
+        transition: background 0.15s, transform 0.1s;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      }
+
+      .postit-addBtn:hover {
+        background: #ffe033;
+        transform: translateY(-1px);
+      }
+
+      .postit-addBtn:active {
+        transform: translateY(0);
+      }
+
+      .postit-addBtnIcon {
+        font-size: 20px;
+        line-height: 1;
+        margin-top: -1px;
+      }
+
+      .postit-addBtnLabel {
+        font-size: 14px;
+      }
+
+      /* 보드 */
+      .postit-board {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* 도트 격자 배경 */
+      .postit-gridBg {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(
+          circle,
+          rgba(0, 0, 0, 0.12) 1px,
+          transparent 1px
+        );
+        background-size: 28px 28px;
+        pointer-events: none;
+      }
+
+      /* 빈 상태 */
+      .postit-empty {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        pointer-events: none;
+        color: rgba(0, 0, 0, 0.3);
+        font-size: 15px;
+      }
+
+      .postit-empty p:first-child {
+        font-size: 52px;
+        margin-bottom: 8px;
+      }
+
+      .postit-empty strong {
+        color: rgba(0, 0, 0, 0.5);
+      }
+
+      /* ===== PostItNote.css ===== */
+      .postit-note {
+        position: absolute;
+        width: 200px;
+        min-height: 200px;
+        display: flex;
+        flex-direction: column;
+        border-radius: 4px;
+        box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2),
+          1px 1px 4px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+        cursor: grab;
+        user-select: none;
+      }
+
+      .postit-note:hover {
+        box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.28),
+          2px 2px 6px rgba(0, 0, 0, 0.12);
+      }
+
+      .postit-note.isDragging {
+        cursor: grabbing;
+        box-shadow: 12px 16px 32px rgba(0, 0, 0, 0.35),
+          3px 3px 8px rgba(0, 0, 0, 0.15);
+        transform: scale(1.04) rotate(0deg) !important;
+      }
+
+      .postit-noteHeader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 10px 4px 10px;
+        cursor: grab;
+      }
+
+      .postit-note.isDragging .postit-noteHeader {
+        cursor: grabbing;
+      }
+
+      .postit-noteLines {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .postit-noteLines span {
+        display: block;
+        width: 18px;
+        height: 2px;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 2px;
+      }
+
+      .postit-deleteBtn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: rgba(0, 0, 0, 0.35);
+        font-size: 13px;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.15s, color 0.15s;
+        padding: 0;
+      }
+
+      .postit-deleteBtn:hover {
+        background: rgba(0, 0, 0, 0.12);
+        color: rgba(0, 0, 0, 0.7);
+      }
+
+      .postit-textarea {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        resize: none;
+        padding: 4px 12px 12px 12px;
+        font-family: "Nanum Pen Script", "Noto Sans KR", cursive, sans-serif;
+        font-size: 15px;
+        line-height: 1.6;
+        color: rgba(0, 0, 0, 0.75);
+        cursor: text;
+        min-height: 140px;
+      }
+
+      .postit-textarea::placeholder {
+        color: rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body style="margin: 0;">
+    <div class="postit-wrapper">
+      <header class="postit-header">
+        <div class="postit-logo">
+          <span class="postit-logoIcon" aria-hidden="true">📝</span>
+          <span class="postit-logoText">Post-it</span>
+        </div>
+        <div class="postit-info" id="postitInfo">메모 0개</div>
+        <button class="postit-addBtn" id="postitAddBtn" type="button" title="메모 추가">
+          <span class="postit-addBtnIcon" aria-hidden="true">+</span>
+          <span class="postit-addBtnLabel">새 메모</span>
+        </button>
+      </header>
+
+      <div class="postit-board" id="postitBoard">
+        <div class="postit-gridBg" aria-hidden="true"></div>
+
+        <div class="postit-empty" id="postitEmpty" hidden>
+          <p>📋</p>
+          <p>메모가 없습니다</p>
+          <p>상단의 <strong>+ 새 메모</strong> 버튼을 눌러보세요!</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const NOTE_COLORS = ["#FFF176", "#F8BBD0", "#B3E5FC", "#C8E6C9", "#FFE0B2", "#E1BEE7"];
+      const state = { notes: [], zOrder: [], colorIndex: 3, drag: null };
+
+      const els = {
+        board: document.getElementById("postitBoard"),
+        info: document.getElementById("postitInfo"),
+        addBtn: document.getElementById("postitAddBtn"),
+        empty: document.getElementById("postitEmpty"),
+      };
+
+      function generateId() {
+        return Math.random().toString(36).slice(2, 9);
+      }
+
+      function clamp(v, min, max) {
+        return Math.min(max, Math.max(min, v));
+      }
+
+      function bringToFront(id) {
+        state.zOrder = [...state.zOrder.filter((z) => z !== id), id];
+      }
+
+      function deleteNote(id) {
+        state.notes = state.notes.filter((n) => n.id !== id);
+        state.zOrder = state.zOrder.filter((z) => z !== id);
+        render();
+      }
+
+      function addNote() {
+        const rect = els.board.getBoundingClientRect();
+        const bw = rect.width || 800;
+        const bh = rect.height || 600;
+
+        const x = Math.random() * (bw - 240) + 40;
+        const y = Math.random() * (bh - 260) + 60;
+        const rotation = (Math.random() - 0.5) * 6;
+        const color = NOTE_COLORS[state.colorIndex % NOTE_COLORS.length];
+        state.colorIndex += 1;
+
+        const id = generateId();
+        state.notes.push({ id, x, y, content: "", color, rotation });
+        state.zOrder.push(id);
+        render();
+      }
+
+      function createNoteEl(note) {
+        const noteEl = document.createElement("div");
+        noteEl.className = "postit-note";
+        noteEl.dataset.noteId = note.id;
+
+        const header = document.createElement("div");
+        header.className = "postit-noteHeader";
+
+        const lines = document.createElement("div");
+        lines.className = "postit-noteLines";
+        lines.setAttribute("aria-hidden", "true");
+        lines.innerHTML = "<span></span><span></span><span></span>";
+
+        const del = document.createElement("button");
+        del.className = "postit-deleteBtn";
+        del.type = "button";
+        del.title = "삭제";
+        del.textContent = "✕";
+        del.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteNote(note.id);
+        });
+
+        header.appendChild(lines);
+        header.appendChild(del);
+
+        const ta = document.createElement("textarea");
+        ta.className = "postit-textarea";
+        ta.placeholder = "메모를 입력하세요...";
+        ta.spellcheck = false;
+        ta.value = note.content;
+        ta.addEventListener("input", () => {
+          const n = state.notes.find((x) => x.id === note.id);
+          if (n) n.content = ta.value;
+        });
+
+        noteEl.appendChild(header);
+        noteEl.appendChild(ta);
+
+        noteEl.addEventListener("mousedown", (e) => {
+          const target = e.target;
+          if (target && target.tagName === "TEXTAREA") return;
+          if (target && target.closest && target.closest(".postit-deleteBtn")) return;
+
+          e.preventDefault();
+          bringToFront(note.id);
+          state.drag = {
+            id: note.id,
+            offsetX: e.clientX - note.x,
+            offsetY: e.clientY - note.y,
+          };
+          noteEl.classList.add("isDragging");
+          render();
+        });
+
+        return noteEl;
+      }
+
+      function applyNoteStyle(noteEl, note) {
+        const zIndex = state.zOrder.indexOf(note.id) + 1;
+        noteEl.style.left = `${note.x}px`;
+        noteEl.style.top = `${note.y}px`;
+        noteEl.style.backgroundColor = note.color;
+        noteEl.style.transform = `rotate(${note.rotation}deg)`;
+        noteEl.style.zIndex = String(zIndex);
+      }
+
+      function render() {
+        els.info.textContent = `메모 ${state.notes.length}개`;
+        els.empty.hidden = state.notes.length !== 0;
+
+        els.board.querySelectorAll(".postit-note").forEach((el) => el.remove());
+
+        for (const id of state.zOrder) {
+          const note = state.notes.find((n) => n.id === id);
+          if (!note) continue;
+          const el = createNoteEl(note);
+          applyNoteStyle(el, note);
+          if (state.drag && state.drag.id === note.id) el.classList.add("isDragging");
+          els.board.appendChild(el);
+        }
+      }
+
+      window.addEventListener("mousemove", (e) => {
+        if (!state.drag) return;
+        const id = state.drag.id;
+        const note = state.notes.find((n) => n.id === id);
+        if (!note) return;
+
+        const rect = els.board.getBoundingClientRect();
+        const maxX = rect.width - 40;
+        const maxY = rect.height - 40;
+        note.x = clamp(e.clientX - rect.left - state.drag.offsetX, -20, maxX);
+        note.y = clamp(e.clientY - rect.top - state.drag.offsetY, -20, maxY);
+
+        const el = els.board.querySelector(`.postit-note[data-note-id="${id}"]`);
+        if (el) applyNoteStyle(el, note);
+      });
+
+      window.addEventListener("mouseup", () => {
+        if (!state.drag) return;
+        const id = state.drag.id;
+        state.drag = null;
+        const el = els.board.querySelector(`.postit-note[data-note-id="${id}"]`);
+        if (el) el.classList.remove("isDragging");
+      });
+
+      els.addBtn.addEventListener("click", addNote);
+
+      // 초기 노트
+      state.notes = [
+        {
+          id: generateId(),
+          x: 80,
+          y: 120,
+          content: "🎉 포스트잇 앱에 오신 것을 환영해요!\\n\\n드래그해서 옮겨보세요.",
+          color: NOTE_COLORS[0],
+          rotation: -2,
+        },
+        {
+          id: generateId(),
+          x: 340,
+          y: 180,
+          content: "+ 버튼을 눌러 새 메모를 추가하세요!",
+          color: NOTE_COLORS[2],
+          rotation: 1.5,
+        },
+        {
+          id: generateId(),
+          x: 590,
+          y: 100,
+          content: "✕ 버튼으로 메모를 삭제할 수 있어요.",
+          color: NOTE_COLORS[1],
+          rotation: -1,
+        },
+      ];
+      state.zOrder = state.notes.map((n) => n.id);
+      render();
+    </script>
+  </body>
+</html>
+

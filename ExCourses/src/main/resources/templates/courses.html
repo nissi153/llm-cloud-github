@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>수강신청</title>
+    <link rel="stylesheet" href="/courses.css" />
+  </head>
+  <body class="page">
+    <div class="container">
+      <header class="header">
+        <h1 class="title">수강신청</h1>
+        <p class="subtitle">원하는 과목을 선택하세요</p>
+      </header>
+
+      <main class="content">
+        <section class="section" aria-labelledby="openCoursesTitle">
+          <h2 class="sectionTitle" id="openCoursesTitle">개설 과목</h2>
+          <div id="courseList"></div>
+        </section>
+
+        <section class="section" aria-labelledby="myCoursesTitle">
+          <h2 class="sectionTitle" id="myCoursesTitle">내 수강 목록</h2>
+          <div id="selectedCourses"></div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      /** @typedef {{id:string,name:string,code:string,professor:string,credits:number,time:string,capacity:number,enrolled:number}} Course */
+
+      // App.tsx의 MOCK_COURSES를 그대로 옮김
+      /** @type {Course[]} */
+      const courses = [
+        {
+          id: "1",
+          name: "자료구조",
+          code: "CS201",
+          professor: "김철수",
+          credits: 3,
+          time: "월/수 10:30-12:00",
+          capacity: 40,
+          enrolled: 35,
+        },
+        {
+          id: "2",
+          name: "알고리즘",
+          code: "CS301",
+          professor: "이영희",
+          credits: 3,
+          time: "화/목 13:00-14:30",
+          capacity: 35,
+          enrolled: 30,
+        },
+        {
+          id: "3",
+          name: "데이터베이스",
+          code: "CS302",
+          professor: "박민수",
+          credits: 3,
+          time: "월/수 14:00-15:30",
+          capacity: 45,
+          enrolled: 45,
+        },
+        {
+          id: "4",
+          name: "운영체제",
+          code: "CS303",
+          professor: "정수진",
+          credits: 3,
+          time: "화/목 09:00-10:30",
+          capacity: 40,
+          enrolled: 28,
+        },
+        {
+          id: "5",
+          name: "컴퓨터네트워크",
+          code: "CS304",
+          professor: "최준호",
+          credits: 3,
+          time: "월/수 16:00-17:30",
+          capacity: 35,
+          enrolled: 20,
+        },
+        {
+          id: "6",
+          name: "소프트웨어공학",
+          code: "CS305",
+          professor: "강지훈",
+          credits: 3,
+          time: "화/목 15:00-16:30",
+          capacity: 30,
+          enrolled: 25,
+        },
+      ];
+
+      /** @type {Course[]} */
+      let selectedCourses = [];
+
+      const els = {
+        courseList: document.getElementById("courseList"),
+        selectedCourses: document.getElementById("selectedCourses"),
+      };
+
+      /** @param {Course} course */
+      function handleAddCourse(course) {
+        if (!selectedCourses.find((c) => c.id === course.id)) {
+          selectedCourses = [...selectedCourses, course];
+          render();
+        }
+      }
+
+      /** @param {string} courseId */
+      function handleRemoveCourse(courseId) {
+        selectedCourses = selectedCourses.filter((c) => c.id !== courseId);
+        render();
+      }
+
+      /** @param {Course} course */
+      function renderCourseItem(course) {
+        const selectedCourseIds = selectedCourses.map((c) => c.id);
+        const isSelected = selectedCourseIds.includes(course.id);
+        const isFull = course.enrolled >= course.capacity;
+
+        const item = document.createElement("div");
+        item.className = "courseItem";
+
+        const header = document.createElement("div");
+        header.className = "courseHeader";
+
+        const info = document.createElement("div");
+        info.className = "courseInfo";
+
+        const name = document.createElement("h3");
+        name.className = "courseName";
+        name.textContent = course.name;
+
+        const code = document.createElement("p");
+        code.className = "courseCode";
+        code.textContent = course.code;
+
+        const details = document.createElement("div");
+        details.className = "courseDetails";
+        details.innerHTML = `
+          <span class="courseDetail">👤 ${course.professor}</span>
+          <span class="courseDetail">📚 ${course.credits}학점</span>
+          <span class="courseDetail">🕐 ${course.time}</span>
+          <span class="courseDetail">👥 ${course.enrolled}/${course.capacity}</span>
+        `;
+
+        info.appendChild(name);
+        info.appendChild(code);
+        info.appendChild(details);
+
+        const btn = document.createElement("button");
+        btn.className = "addButton";
+        btn.type = "button";
+        btn.disabled = isSelected || isFull;
+        btn.textContent = isSelected ? "신청됨" : isFull ? "마감" : "신청";
+        btn.addEventListener("click", () => handleAddCourse(course));
+
+        header.appendChild(info);
+        header.appendChild(btn);
+
+        item.appendChild(header);
+        return item;
+      }
+
+      /** @param {Course} course */
+      function renderSelectedItem(course) {
+        const wrap = document.createElement("div");
+        wrap.className = "selectedItem";
+
+        const header = document.createElement("div");
+        header.className = "itemHeader";
+
+        const left = document.createElement("div");
+
+        const name = document.createElement("h4");
+        name.className = "itemName";
+        name.textContent = course.name;
+
+        const code = document.createElement("p");
+        code.className = "itemCode";
+        code.textContent = course.code;
+
+        left.appendChild(name);
+        left.appendChild(code);
+
+        const rm = document.createElement("button");
+        rm.className = "removeButton";
+        rm.type = "button";
+        rm.title = "삭제";
+        rm.textContent = "×";
+        rm.addEventListener("click", () => handleRemoveCourse(course.id));
+
+        header.appendChild(left);
+        header.appendChild(rm);
+
+        const details = document.createElement("div");
+        details.className = "itemDetails";
+        details.innerHTML = `
+          <div>${course.professor} 교수</div>
+          <div>${course.time} · ${course.credits}학점</div>
+        `;
+
+        wrap.appendChild(header);
+        wrap.appendChild(details);
+        return wrap;
+      }
+
+      function renderSelectedSummary() {
+        const totalCredits = selectedCourses.reduce((sum, c) => sum + c.credits, 0);
+
+        const summary = document.createElement("div");
+        summary.className = "summary";
+
+        const countRow = document.createElement("div");
+        countRow.className = "summaryItem";
+        countRow.innerHTML = `<span>선택 과목 수</span><span>${selectedCourses.length}개</span>`;
+
+        const totalRow = document.createElement("div");
+        totalRow.className = "summaryTotal";
+        totalRow.innerHTML = `<span>총 학점</span><span>${totalCredits}학점</span>`;
+
+        summary.appendChild(countRow);
+        summary.appendChild(totalRow);
+        return summary;
+      }
+
+      function render() {
+        els.courseList.innerHTML = "";
+        courses.forEach((c) => els.courseList.appendChild(renderCourseItem(c)));
+
+        els.selectedCourses.innerHTML = "";
+        if (selectedCourses.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "emptyState";
+          empty.textContent = "선택한 과목이 없습니다";
+          els.selectedCourses.appendChild(empty);
+        } else {
+          selectedCourses.forEach((c) => els.selectedCourses.appendChild(renderSelectedItem(c)));
+          els.selectedCourses.appendChild(renderSelectedSummary());
+        }
+      }
+
+      render();
+    </script>
+  </body>
+</html>
+

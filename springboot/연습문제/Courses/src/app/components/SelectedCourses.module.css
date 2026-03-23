@@ -1,0 +1,73 @@
+.selectedItem {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #f9fafb;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.itemName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.itemCode {
+  font-size: 13px;
+  color: #666;
+}
+
+.removeButton {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 18px;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.removeButton:hover {
+  background: #fee2e2;
+}
+
+.itemDetails {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.summary {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #e5e5e5;
+}
+
+.summaryItem {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e5e5;
+}
