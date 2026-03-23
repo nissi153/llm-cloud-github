@@ -26,7 +26,8 @@ public class SecurityConfig {
   @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        //cors 설정을 해준다.
+         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         //RestAPI 서버에서는 주로 비활성화한다.
         //인증을 폼 기반으로 하지 않고, 토큰(JWT)기반으로 하기에, CSRF 인증이 불필요하다.
         .csrf(csrf -> csrf.disable());
