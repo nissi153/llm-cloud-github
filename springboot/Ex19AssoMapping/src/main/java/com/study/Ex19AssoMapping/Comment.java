@@ -21,6 +21,7 @@ public class Comment {
   // EAGER(열렬, 즉시) : comment엔티티 생성시 가져온다.
   @ManyToOne(fetch = FetchType.LAZY)
   // board_id라는 FK컬럼을 만든다.
+  // 내부적으로는 join 쿼리를 이용한다.
   @JoinColumn(name = "board_id")
   private Board board; //Board엔티티의 객체를 매핑해 준다.
 }
