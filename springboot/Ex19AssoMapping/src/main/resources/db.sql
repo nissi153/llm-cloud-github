@@ -13,17 +13,19 @@ DROP TABLE IF EXISTS board;
 
 -- 게시글 테이블 (부모, One 쪽)
 CREATE TABLE board (
-    id      BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title   VARCHAR(200) NOT NULL,
-    content VARCHAR(2000)
+                       id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+                       title   VARCHAR(200) NOT NULL,
+                       content VARCHAR(2000)
 );
 
+-- Foreign Key : 외래키 - 다른 테이블의 키값을 필드의 키값로 가진 것.
+--                        부모테이블과 자식테이블과의 관계를 맺는 가장 중요한 요소.
 -- 댓글 테이블 (자식, Many 쪽) → FK로 board 참조
 CREATE TABLE comment (
-    id       BIGINT AUTO_INCREMENT PRIMARY KEY,
-    content  VARCHAR(1000) NOT NULL,
-    board_id BIGINT NOT NULL,
-    FOREIGN KEY (board_id) REFERENCES board(id)
+                         id       BIGINT AUTO_INCREMENT PRIMARY KEY,
+                         content  VARCHAR(1000) NOT NULL,
+                         board_id BIGINT NOT NULL,
+                         FOREIGN KEY (board_id) REFERENCES board(id)
 );
 
 -- ============================================
@@ -58,19 +60,19 @@ SELECT * FROM comment;
 -- 게시글별 댓글 조회 (JOIN)
 SELECT b.title AS 게시글, c.content AS 댓글
 FROM board b
-JOIN comment c ON b.id = c.board_id
+         JOIN comment c ON b.id = c.board_id
 ORDER BY b.id, c.id;
 
 -- 특정 게시글의 댓글 조회 (게시글 1번)
 SELECT b.title AS 게시글, c.content AS 댓글
 FROM board b
-JOIN comment c ON b.id = c.board_id
+         JOIN comment c ON b.id = c.board_id
 WHERE b.id = 1;
 
 -- 게시글별 댓글 수 조회
 SELECT b.title AS 게시글, COUNT(c.id) AS 댓글수
 FROM board b
-LEFT JOIN comment c ON b.id = c.board_id
+         LEFT JOIN comment c ON b.id = c.board_id
 GROUP BY b.id, b.title;
 
 -- ============================================
