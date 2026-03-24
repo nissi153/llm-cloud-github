@@ -1,4 +1,6 @@
 package com.study.Ex19AssoMapping;
 
-public interface BoardRepo {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface BoardRepo extends JpaRepository<Board, Long> {
 }

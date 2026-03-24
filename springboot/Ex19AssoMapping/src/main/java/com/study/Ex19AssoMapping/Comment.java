@@ -1,8 +1,6 @@
 package com.study.Ex19AssoMapping;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -11,6 +9,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class Comment {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   private String content;
 
@@ -20,6 +20,8 @@ public class Comment {
   //                 Board엔티티가 준비되고 나서 가져와야 됨.
   // EAGER(열렬, 즉시) : comment엔티티 생성시 가져온다.
   @ManyToOne(fetch = FetchType.LAZY)
+  // board_id라는 FK컬럼을 만든다.
+  @JoinColumn(name = "board_id")
   private Board board; //Board엔티티의 객체를 매핑해 준다.
 }
 // 댓글을 조회하려면, 게시글의 id를 fk필드로 가진 레코드들을 검색했다.
