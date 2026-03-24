@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { supabase } from './supabase.js';
 import styles from './app.module.css';
 
 const NOTE_COLORS = [
@@ -10,18 +11,19 @@ const NOTE_COLORS = [
   { bg: '#fff3e0', header: '#ffcc80' },
 ];
 
-const STORAGE_KEY = 'postit-notes';
-
-function loadNotes() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
-    return [];
-  }
-}
-
 function Note({ note, onDelete, onChange }) {
-  const color = NOTE_COLORS[note.colorIdx];
+  const color = NOTE_COLORS[note.color_idx];
+  const timer = useRef(null);
+
+  function handleChange(field, value) {
+    onChange(note.id, field, value);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(async () => {
+      const { error } = await supabase.from('notes').update({ [field]: value }).eq('id', note.id);
+      if (error) console.error('update error:', error);
+    }, 600);
+  }
+
   return (
     <div className={styles.card} style={{ background: color.bg }}>
       <div className={styles.cardHeader} style={{ background: color.header }}>
@@ -32,13 +34,13 @@ function Note({ note, onDelete, onChange }) {
           className={styles.titleInput}
           placeholder="제목"
           value={note.title}
-          onChange={(e) => onChange(note.id, 'title', e.target.value)}
+          onChange={(e) => handleChange('title', e.target.value)}
         />
         <textarea
           className={styles.contentTextarea}
           placeholder="내용을 입력하세요..."
           value={note.content}
-          onChange={(e) => onChange(note.id, 'content', e.target.value)}
+          onChange={(e) => handleChange('content', e.target.value)}
         />
       </div>
     </div>
@@ -46,28 +48,55 @@ function Note({ note, onDelete, onChange }) {
 }
 
 export default function App() {
-  const [notes, setNotes] = useState(loadNotes);
+  const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  function save(updated) {
-    setNotes(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  }
+  useEffect(() => {
+    supabase
+      .from('notes')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (error) setError(error.message);
+        else setNotes(data || []);
+        setLoading(false);
+      });
+  }, []);
 
-  function addNote() {
-    save([...notes, {
-      id: Date.now().toString(),
+  async function addNote() {
+    const newNote = {
       title: '',
       content: '',
-      colorIdx: Math.floor(Math.random() * NOTE_COLORS.length),
-    }]);
+      color_idx: Math.floor(Math.random() * NOTE_COLORS.length),
+    };
+    const { data, error } = await supabase.from('notes').insert(newNote).select().single();
+    if (!error) setNotes((prev) => [...prev, data]);
   }
 
-  function deleteNote(id) {
-    save(notes.filter((n) => n.id !== id));
+  async function deleteNote(id) {
+    const { error } = await supabase.from('notes').delete().eq('id', id);
+    if (!error) setNotes((prev) => prev.filter((n) => n.id !== id));
   }
 
   function changeNote(id, field, value) {
-    save(notes.map((n) => n.id === id ? { ...n, [field]: value } : n));
+    setNotes((prev) => prev.map((n) => n.id === id ? { ...n, [field]: value } : n));
+  }
+
+  if (loading) {
+    return (
+      <div className={styles.app}>
+        <p className={styles.empty}>불러오는 중...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.app}>
+        <p className={styles.empty}>오류: {error}</p>
+      </div>
+    );
   }
 
   return (

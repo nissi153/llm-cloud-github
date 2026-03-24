@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Word Cards</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #f0f4ff;
+        --surface: #ffffff;
+        --primary: #4f6ef7;
+        --primary-light: #eef0ff;
+        --primary-dark: #3a57d4;
+        --accent: #ff6b6b;
+        --text: #1a1d2e;
+        --text-sub: #6b7280;
+        --border: #e5e7eb;
+        --shadow: 0 4px 20px rgba(79, 110, 247, 0.1);
+        --radius: 16px;
+      }
+
+      body {
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      /* ── Header ── */
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 20px 32px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      }
+      header .logo {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        letter-spacing: -0.5px;
+      }
+      header .logo span {
+        color: var(--accent);
+      }
+
+      /* ── Main layout ── */
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 32px 24px;
+      }
+
+      /* ── Controls ── */
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 28px;
+      }
+
+      .search-wrap {
+        flex: 1;
+        min-width: 240px;
+        position: relative;
+        display: flex;
+      }
+      .search-wrap svg {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-sub);
+        pointer-events: none;
+      }
+      #searchInput {
+        width: 100%;
+        padding: 13px 16px 13px 46px;
+        border: 2px solid var(--border);
+        border-radius: 12px 0 0 12px;
+        font-size: 0.95rem;
+        background: var(--surface);
+        color: var(--text);
+        outline: none;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      #searchInput:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(79, 110, 247, 0.12);
+        z-index: 1;
+      }
+      #searchInput::placeholder {
+        color: var(--text-sub);
+      }
+      .search-btn {
+        padding: 0 20px;
+        background: var(--primary);
+        color: #fff;
+        border: 2px solid var(--primary);
+        border-radius: 0 12px 12px 0;
+        font-size: 0.9rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.18s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .search-btn:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+
+      .sort-group {
+        display: flex;
+        gap: 8px;
+        background: var(--surface);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        padding: 4px;
+      }
+      .sort-btn {
+        padding: 8px 18px;
+        border: none;
+        border-radius: 9px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-sub);
+        background: transparent;
+        transition: all 0.18s;
+      }
+      .sort-btn.active {
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(79, 110, 247, 0.3);
+      }
+      .sort-btn:not(.active):hover {
+        background: var(--primary-light);
+        color: var(--primary);
+      }
+
+      /* ── Stats ── */
+      .stats {
+        font-size: 0.85rem;
+        color: var(--text-sub);
+        margin-bottom: 20px;
+      }
+      .stats strong {
+        color: var(--primary);
+        font-weight: 700;
+      }
+
+      /* ── Card Grid ── */
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+      }
+
+      .word-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 24px 22px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        transition:
+          transform 0.18s,
+          box-shadow 0.18s;
+        position: relative;
+        overflow: hidden;
+      }
+      .word-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--primary);
+        border-radius: 4px 0 0 4px;
+        opacity: 0;
+        transition: opacity 0.18s;
+      }
+      .word-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 32px rgba(79, 110, 247, 0.15);
+      }
+      .word-card:hover::before {
+        opacity: 1;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+      .word-en {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.3px;
+        line-height: 1.2;
+      }
+      .word-pos {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: var(--primary-light);
+        color: var(--primary);
+        white-space: nowrap;
+        margin-left: 8px;
+      }
+      .word-phonetic {
+        font-size: 0.83rem;
+        color: var(--text-sub);
+        margin-bottom: 10px;
+        font-style: italic;
+      }
+      .word-ko {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 10px;
+      }
+      .word-example {
+        font-size: 0.82rem;
+        color: var(--text-sub);
+        line-height: 1.55;
+        border-top: 1px dashed var(--border);
+        padding-top: 10px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .word-date {
+        font-size: 0.72rem;
+        color: #c0c5d0;
+        margin-top: 10px;
+        text-align: right;
+      }
+
+      mark {
+        background: rgba(255, 213, 79, 0.55);
+        color: inherit;
+        border-radius: 3px;
+        padding: 0 1px;
+      }
+
+      /* ── Empty state ── */
+      .empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 80px 20px;
+        color: var(--text-sub);
+      }
+      .empty svg {
+        margin-bottom: 16px;
+        opacity: 0.35;
+      }
+      .empty p {
+        font-size: 1rem;
+      }
+
+      /* ── Add button ── */
+      .fab {
+        position: fixed;
+        bottom: 36px;
+        right: 36px;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        font-size: 1.6rem;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 24px rgba(79, 110, 247, 0.4);
+        transition:
+          background 0.18s,
+          transform 0.18s;
+        z-index: 200;
+      }
+      .fab:hover {
+        background: var(--primary-dark);
+        transform: scale(1.08);
+      }
+
+      /* ── Modal ── */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.38);
+        backdrop-filter: blur(4px);
+        z-index: 300;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+      .modal {
+        background: var(--surface);
+        border-radius: 20px;
+        padding: 32px 28px;
+        width: 100%;
+        max-width: 440px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+        animation: popIn 0.22s ease;
+      }
+      @keyframes popIn {
+        from {
+          transform: scale(0.93);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .modal h2 {
+        font-size: 1.2rem;
+        font-weight: 800;
+        margin-bottom: 22px;
+        color: var(--text);
+      }
+      .form-group {
+        margin-bottom: 16px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-sub);
+        margin-bottom: 6px;
+      }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 11px 14px;
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        font-size: 0.93rem;
+        color: var(--text);
+        outline: none;
+        background: var(--bg);
+        transition: border-color 0.18s;
+        font-family: inherit;
+      }
+      .form-group textarea {
+        resize: vertical;
+        min-height: 72px;
+      }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        border-color: var(--primary);
+      }
+      .form-row {
+        display: flex;
+        gap: 12px;
+      }
+      .form-row .form-group {
+        flex: 1;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 24px;
+      }
+      .btn-cancel {
+        padding: 10px 22px;
+        border-radius: 10px;
+        border: 2px solid var(--border);
+        background: transparent;
+        color: var(--text-sub);
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .btn-cancel:hover {
+        background: var(--border);
+      }
+      .btn-add {
+        padding: 10px 24px;
+        border-radius: 10px;
+        border: none;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 3px 12px rgba(79, 110, 247, 0.3);
+        transition: background 0.15s;
+      }
+      .btn-add:hover {
+        background: var(--primary-dark);
+      }
+
+      @media (max-width: 600px) {
+        header {
+          padding: 16px 18px;
+        }
+        main {
+          padding: 20px 14px;
+        }
+        .controls {
+          gap: 10px;
+        }
+        .fab {
+          bottom: 22px;
+          right: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">Word<span>Cards</span></div>
+    </header>
+
+    <main>
+      <!-- ── 검색 + 정렬 폼 ── -->
+      <form id="searchForm" method="get" th:action="@{/}">
+        <div class="controls">
+          <div class="search-wrap">
+            <svg
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              id="searchInput"
+              type="text"
+              name="q"
+              th:value="${q}"
+              placeholder="단어, 뜻, 예문 검색..."
+              autocomplete="off"
+            />
+            <button type="submit" class="search-btn">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              검색
+            </button>
+          </div>
+          <input type="hidden" id="sortInput" name="sort" th:value="${sort}" />
+          <div class="sort-group">
+            <button
+              type="button"
+              class="sort-btn"
+              th:classappend="${sort == 'newest'} ? ' active'"
+              onclick="setSort('newest')"
+            >
+              최신순
+            </button>
+            <button
+              type="button"
+              class="sort-btn"
+              th:classappend="${sort == 'alpha'} ? ' active'"
+              onclick="setSort('alpha')"
+            >
+              알파벳순
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- ── 통계 ── -->
+      <div class="stats">
+        <span th:if="${q != null and !#strings.isEmpty(q)}">
+          "<strong th:text="${q}"></strong>" 검색 결과
+          <strong th:text="${resultCount}"></strong>개 / 전체
+          <strong th:text="${totalCount}"></strong>개
+        </span>
+        <span th:if="${q == null or #strings.isEmpty(q)}">
+          전체 <strong th:text="${totalCount}"></strong>개 단어
+        </span>
+      </div>
+
+      <!-- ── 카드 그리드 ── -->
+      <div class="card-grid">
+        <!-- 빈 결과 -->
+        <div class="empty" th:if="${#lists.isEmpty(words)}">
+          <svg
+            width="64"
+            height="64"
+            fill="none"
+            stroke="#6b7280"
+            stroke-width="1.5"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <p>검색 결과가 없습니다.</p>
+        </div>
+
+        <!-- 단어 카드 -->
+        <div class="word-card" th:each="word : ${words}">
+          <div class="card-header">
+            <div class="word-en" th:utext="${word.wordHtml()}"></div>
+            <span class="word-pos" th:text="${word.posLabel()}"></span>
+          </div>
+          <div
+            class="word-phonetic"
+            th:if="${!#strings.isEmpty(word.phoneticHtml())}"
+            th:utext="${word.phoneticHtml()}"
+          ></div>
+          <div class="word-ko" th:utext="${word.koHtml()}"></div>
+          <div
+            class="word-example"
+            th:if="${!#strings.isEmpty(word.exampleHtml())}"
+            th:utext="${word.exampleHtml()}"
+          ></div>
+          <div class="word-date" th:text="${word.dateStr()}"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ── FAB 버튼 ── -->
+    <button class="fab" id="fabBtn" title="단어 추가">＋</button>
+
+    <!-- ── 단어 추가 모달 ── -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal">
+        <h2>새 단어 추가</h2>
+        <form th:action="@{/words}" method="post">
+          <div class="form-row">
+            <div class="form-group">
+              <label>영어 단어 *</label>
+              <input
+                type="text"
+                name="word"
+                placeholder="e.g. serendipity"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>품사</label>
+              <select name="pos">
+                <option value="noun">명사</option>
+                <option value="verb">동사</option>
+                <option value="adj">형용사</option>
+                <option value="adv">부사</option>
+                <option value="etc">기타</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>발음기호</label>
+            <input
+              type="text"
+              name="phonetic"
+              placeholder="e.g. /ˌserənˈdɪpɪti/"
+            />
+          </div>
+          <div class="form-group">
+            <label>한국어 뜻 *</label>
+            <input
+              type="text"
+              name="ko"
+              placeholder="e.g. 뜻밖의 행운"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>예문</label>
+            <textarea
+              name="example"
+              placeholder="e.g. It was pure serendipity that we met."
+            ></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" id="cancelBtn">
+              취소
+            </button>
+            <button type="submit" class="btn-add">추가하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      /* ── 정렬 변경 ── */
+      function setSort(sortVal) {
+        document.getElementById("sortInput").value = sortVal;
+        document.getElementById("searchForm").submit();
+      }
+
+      /* ── 모달 열기/닫기 ── */
+      const overlay = document.getElementById("modalOverlay");
+      document
+        .getElementById("fabBtn")
+        .addEventListener("click", () => overlay.classList.add("open"));
+      document
+        .getElementById("cancelBtn")
+        .addEventListener("click", () => overlay.classList.remove("open"));
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) overlay.classList.remove("open");
+      });
+    </script>
+  </body>
+</html>
