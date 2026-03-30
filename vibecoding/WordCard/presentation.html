@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WordCards – 발표자료</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #4f6ef7;
+      --primary-dark: #3a57d4;
+      --accent: #ff6b6b;
+      --bg: #0f1117;
+      --surface: #1a1d2e;
+      --surface2: #242740;
+      --text: #f0f4ff;
+      --text-sub: #9aa5c4;
+      --border: #2e3352;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --purple: #a78bfa;
+      --pink: #f472b6;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ── 슬라이드 컨테이너 ── */
+    .deck {
+      width: 100%; height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      opacity: 0;
+      transform: translateX(100%);
+      transition: transform 0.55s cubic-bezier(0.4,0,0.2,1),
+                  opacity  0.55s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: all;
+    }
+    .slide.prev {
+      opacity: 0;
+      transform: translateX(-100%);
+    }
+
+    /* ── 슬라이드 번호 ── */
+    .slide-num {
+      position: fixed;
+      bottom: 28px;
+      right: 36px;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      z-index: 100;
+    }
+
+    /* ── 네비게이션 버튼 ── */
+    .nav {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 100;
+    }
+    .nav button {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.18s, border-color 0.18s;
+    }
+    .nav button:hover { background: var(--primary); border-color: var(--primary); }
+    .nav button:disabled { opacity: 0.3; cursor: default; }
+
+    /* ── 진행 바 ── */
+    .progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.4s ease;
+      z-index: 200;
+    }
+
+    /* ── 점 인디케이터 ── */
+    .dots {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+      margin-bottom: 50px;
+    }
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.25s, transform 0.25s;
+      cursor: pointer;
+    }
+    .dot.active { background: var(--primary); transform: scale(1.4); }
+
+    /* ════════════════════════════
+       공통 레이아웃 헬퍼
+    ════════════════════════════ */
+    .tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .tag-blue  { background: rgba(79,110,247,0.18); color: #818cf8; }
+    .tag-green { background: rgba(52,211,153,0.18); color: var(--green); }
+    .tag-pink  { background: rgba(244,114,182,0.18); color: var(--pink); }
+    .tag-yellow{ background: rgba(251,191,36,0.18);  color: var(--yellow); }
+    .tag-purple{ background: rgba(167,139,250,0.18); color: var(--purple); }
+
+    h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 900; line-height: 1.15; }
+    h2 { font-size: clamp(1.5rem, 3.5vw, 2.4rem); font-weight: 800; line-height: 1.2; }
+    h3 { font-size: clamp(1rem, 2.2vw, 1.4rem); font-weight: 700; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; max-width: 900px; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; width: 100%; max-width: 960px; }
+
+    .card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .card .icon { font-size: 2rem; margin-bottom: 12px; }
+    .card h3 { margin-bottom: 8px; }
+    .card p { font-size: 0.88rem; color: var(--text-sub); line-height: 1.6; }
+
+    .code-block {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      color: #e2e8f0;
+      width: 100%;
+    }
+    .code-block .k { color: #ff79c6; }
+    .code-block .s { color: #f1fa8c; }
+    .code-block .c { color: #6272a4; }
+    .code-block .t { color: #8be9fd; }
+    .code-block .g { color: var(--green); }
+
+    .badge-row { display: flex; flex-wrap: wrap; gap: 10px; }
+    .badge {
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 1.5px solid;
+    }
+
+    ul.check-list { list-style: none; }
+    ul.check-list li {
+      padding: 7px 0;
+      font-size: 0.95rem;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    ul.check-list li::before {
+      content: '✓';
+      color: var(--green);
+      font-weight: 900;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .accent-line {
+      width: 48px; height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 4px;
+      margin: 14px 0;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .flow-box {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: 1.5px solid var(--border);
+      background: var(--surface2);
+      text-align: center;
+    }
+    .flow-arrow { color: var(--text-sub); font-size: 1.2rem; }
+
+    table.info-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    table.info-table th, table.info-table td {
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+    table.info-table th {
+      background: var(--surface2);
+      color: var(--text-sub);
+      font-weight: 700;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    table.info-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+    /* ════ 슬라이드별 배경 ════ */
+    #s1 { background: radial-gradient(ellipse at 30% 40%, rgba(79,110,247,0.18) 0%, transparent 60%),
+                      radial-gradient(ellipse at 75% 70%, rgba(255,107,107,0.12) 0%, transparent 50%), var(--bg); }
+    #s10 { background: radial-gradient(ellipse at 50% 50%, rgba(79,110,247,0.2) 0%, transparent 60%), var(--bg); }
+  </style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="dots" id="dots"></div>
+<div class="slide-num" id="slideNum"></div>
+
+<div class="deck" id="deck">
+
+  <!-- ══════════════ 1. 타이틀 ══════════════ -->
+  <section class="slide active" id="s1">
+    <div style="text-align:center; max-width: 700px;">
+      <span class="tag tag-blue" style="margin-bottom:24px; display:inline-block;">Spring Boot 4 Project</span>
+      <h1>Word<span style="color:var(--accent)">Cards</span></h1>
+      <div class="accent-line" style="margin: 20px auto;"></div>
+      <p style="font-size:1.1rem; color:var(--text-sub); line-height:1.7; margin-bottom:32px;">
+        영어 단어장 웹 애플리케이션<br>
+        검색 · 정렬 · 추가 기능을 갖춘 Spring Boot + Thymeleaf + H2 프로젝트
+      </p>
+      <div class="badge-row" style="justify-content:center;">
+        <span class="badge" style="color:#6ee7b7; border-color:#6ee7b7;">Spring Boot 4.0.4</span>
+        <span class="badge" style="color:#818cf8; border-color:#818cf8;">Java 21</span>
+        <span class="badge" style="color:#fbbf24; border-color:#fbbf24;">Thymeleaf</span>
+        <span class="badge" style="color:#f472b6; border-color:#f472b6;">H2 DB</span>
+        <span class="badge" style="color:#38bdf8; border-color:#38bdf8;">JPA</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 2. 프로젝트 목표 ══════════════ -->
+  <section class="slide" id="s2">
+    <div style="max-width:860px; width:100%;">
+      <span class="tag tag-green" style="margin-bottom:16px; display:inline-block;">Overview</span>
+      <h2>프로젝트 목표</h2>
+      <div class="accent-line"></div>
+      <div class="grid2" style="margin-top:8px;">
+        <div class="card">
+          <div class="icon">📖</div>
+          <h3>단어 학습 도구</h3>
+          <p>영어 단어, 발음기호, 한국어 뜻, 예문을 카드 형태로 시각화하여 효율적인 단어 학습을 지원합니다.</p>
+        </div>
+        <div class="card">
+          <div class="icon">🔍</div>
+          <h3>LIKE 검색</h3>
+          <p>단어·뜻·예문·발음기호 4개 필드를 동시에 LIKE 검색하여 빠르게 원하는 단어를 찾을 수 있습니다.</p>
+        </div>
+        <div class="card">
+          <div class="icon">🗂️</div>
+          <h3>정렬 기능</h3>
+          <p>최신순(등록일 DESC) 또는 알파벳순(단어 ASC)으로 목록을 정렬하여 원하는 순서로 학습합니다.</p>
+        </div>
+        <div class="card">
+          <div class="icon">➕</div>
+          <h3>단어 추가</h3>
+          <p>모달 폼을 통해 새로운 단어를 DB에 즉시 저장합니다. POST → Redirect → GET 패턴을 따릅니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 3. 기술 스택 ══════════════ -->
+  <section class="slide" id="s3">
+    <div style="max-width:880px; width:100%;">
+      <span class="tag tag-purple" style="margin-bottom:16px; display:inline-block;">Tech Stack</span>
+      <h2>기술 스택</h2>
+      <div class="accent-line"></div>
+      <table class="info-table" style="margin-top:8px;">
+        <thead>
+          <tr><th>계층</th><th>기술</th><th>버전 / 비고</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>🖥️ 프레임워크</td><td>Spring Boot</td><td>4.0.4 · Java 21 · Gradle 8.14</td></tr>
+          <tr><td>🌐 웹 MVC</td><td>spring-boot-starter-webmvc</td><td>DispatcherServlet 기반 MVC</td></tr>
+          <tr><td>🎨 뷰 템플릿</td><td>Thymeleaf</td><td>서버사이드 렌더링 (SSR)</td></tr>
+          <tr><td>🗄️ ORM</td><td>Spring Data JPA + Hibernate 6</td><td>JPQL LIKE 검색</td></tr>
+          <tr><td>💾 데이터베이스</td><td>H2 (In-Memory)</td><td>spring-boot-h2console 포함</td></tr>
+          <tr><td>✅ 유효성 검사</td><td>spring-boot-starter-validation</td><td>@NotBlank</td></tr>
+          <tr><td>⚙️ 코드 간소화</td><td>Lombok</td><td>@Getter @Setter @Builder 등</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════ 4. 프로젝트 구조 ══════════════ -->
+  <section class="slide" id="s4">
+    <div style="max-width:900px; width:100%; display:grid; grid-template-columns:1fr 1fr; gap:28px; align-items:start;">
+      <div>
+        <span class="tag tag-yellow" style="margin-bottom:16px; display:inline-block;">Architecture</span>
+        <h2>레이어드 아키텍처</h2>
+        <div class="accent-line"></div>
+        <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
+          <div class="flow-box" style="border-color: #818cf8; color:#818cf8;">🌐 Controller (WordController)</div>
+          <div style="text-align:center; color:var(--text-sub);">↕ Model / Form</div>
+          <div class="flow-box" style="border-color: var(--green); color:var(--green);">⚙️ Service (WordService)</div>
+          <div style="text-align:center; color:var(--text-sub);">↕ Entity</div>
+          <div class="flow-box" style="border-color: var(--yellow); color:var(--yellow);">🗂️ Repository (WordRepository)</div>
+          <div style="text-align:center; color:var(--text-sub);">↕ JPA / Hibernate</div>
+          <div class="flow-box" style="border-color: var(--pink); color:var(--pink);">💾 H2 Database</div>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.78rem; color:var(--text-sub); margin-bottom:8px; font-weight:700;">📁 패키지 구조</p>
+        <div class="code-block" style="font-size:0.78rem;">
+<span class="c">com.wordcard/</span>
+├── <span class="t">WordCardApplication</span>.java
+├── controller/
+│   └── <span class="t">WordController</span>.java
+├── service/
+│   └── <span class="t">WordService</span>.java
+├── repository/
+│   └── <span class="t">WordRepository</span>.java
+├── entity/
+│   └── <span class="t">Word</span>.java
+├── dto/
+│   └── <span class="t">WordDto</span>.java  <span class="c">← record</span>
+└── form/
+    └── <span class="t">WordForm</span>.java
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 5. 데이터 모델 ══════════════ -->
+  <section class="slide" id="s5">
+    <div style="max-width:900px; width:100%; display:grid; grid-template-columns:1fr 1fr; gap:28px;">
+      <div>
+        <span class="tag tag-pink" style="margin-bottom:16px; display:inline-block;">Data Model</span>
+        <h2>Entity & DB</h2>
+        <div class="accent-line"></div>
+        <table class="info-table" style="margin-top:10px; font-size:0.82rem;">
+          <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td>id</td><td>BIGINT (PK)</td><td>자동 증가</td></tr>
+            <tr><td>word</td><td>VARCHAR(100)</td><td>영어 단어 *필수</td></tr>
+            <tr><td>pos</td><td>VARCHAR(20)</td><td>품사 (noun/verb/adj…)</td></tr>
+            <tr><td>phonetic</td><td>VARCHAR(100)</td><td>발음기호</td></tr>
+            <tr><td>ko</td><td>VARCHAR(200)</td><td>한국어 뜻 *필수</td></tr>
+            <tr><td>example</td><td>VARCHAR(500)</td><td>예문</td></tr>
+            <tr><td>created_at</td><td>TIMESTAMP</td><td>@PrePersist 자동 설정</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <p style="font-size:0.78rem; color:var(--text-sub); margin-bottom:8px; font-weight:700; margin-top:48px;">📝 Word.java (Lombok 적용)</p>
+        <div class="code-block" style="font-size:0.78rem;">
+<span class="k">@Entity</span> <span class="k">@Table</span>(name=<span class="s">"word"</span>)
+<span class="k">@Getter</span> <span class="k">@Setter</span>
+<span class="k">@NoArgsConstructor</span> <span class="k">@Builder</span>
+<span class="k">public class</span> <span class="t">Word</span> {
+  <span class="k">@Id</span> <span class="k">@GeneratedValue</span>(...)
+  <span class="k">private</span> Long id;
+  <span class="k">private</span> String word, pos;
+  <span class="k">private</span> String phonetic, ko;
+  <span class="k">private</span> String example;
+  <span class="k">private</span> LocalDateTime createdAt;
+
+  <span class="k">@PrePersist</span>
+  <span class="k">void</span> <span class="g">onCreate</span>() {
+    createdAt = LocalDateTime.<span class="g">now</span>();
+  }
+}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 6. 검색 기능 ══════════════ -->
+  <section class="slide" id="s6">
+    <div style="max-width:900px; width:100%; display:grid; grid-template-columns:1fr 1fr; gap:28px;">
+      <div>
+        <span class="tag tag-blue" style="margin-bottom:16px; display:inline-block;">Feature 1</span>
+        <h2>LIKE 검색</h2>
+        <div class="accent-line"></div>
+        <ul class="check-list" style="margin-top:10px;">
+          <li>영어 단어, 한국어 뜻, 예문, 발음기호 <strong>4개 필드</strong> 동시 검색</li>
+          <li>대소문자 구분 없는 <strong>부분 일치</strong> 검색 (LOWER LIKE)</li>
+          <li>검색 버튼 클릭 또는 <strong>Enter</strong> 키로 실행</li>
+          <li>검색 결과 건수와 전체 건수 함께 표시</li>
+          <li>매칭 텍스트 <mark style="background:rgba(255,213,79,0.5); color:#f0f4ff; border-radius:3px; padding:0 2px;">노란 하이라이트</mark> 강조</li>
+        </ul>
+        <div style="margin-top:16px; padding:14px; background:rgba(79,110,247,0.1); border-radius:10px; border:1px solid rgba(79,110,247,0.3);">
+          <p style="font-size:0.8rem; color:var(--text-sub);">⚠️ Hibernate 6 이슈 해결</p>
+          <p style="font-size:0.83rem; margin-top:4px;"><code style="color:var(--yellow);">CONCAT('%',:q,'%')</code> → <code style="color:var(--green);">ESCAPE ''</code> 버그<br>Java에서 <code style="color:var(--green);">"%" + q + "%"</code> 전달로 해결</p>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.78rem; color:var(--text-sub); margin-bottom:8px; font-weight:700; margin-top:48px;">📝 WordRepository.java</p>
+        <div class="code-block" style="font-size:0.78rem;">
+<span class="k">@Query</span>(<span class="s">"""
+  SELECT w FROM Word w
+  WHERE LOWER(w.word)     LIKE :q
+     OR LOWER(w.ko)       LIKE :q
+     OR LOWER(w.example)  LIKE :q
+     OR LOWER(w.phonetic) LIKE :q
+  """</span>)
+List&lt;Word&gt; <span class="g">searchByQuery</span>(
+  <span class="k">@Param</span>(<span class="s">"q"</span>) String q, Sort sort);
+        </div>
+        <p style="font-size:0.78rem; color:var(--text-sub); margin:10px 0 8px; font-weight:700;">📝 WordService.java</p>
+        <div class="code-block" style="font-size:0.78rem;">
+<span class="c">// Java에서 % 직접 전달</span>
+String like = <span class="s">"%" </span>+ q.<span class="g">toLowerCase</span>() + <span class="s">"%"</span>;
+wordRepository.<span class="g">searchByQuery</span>(like, sort);
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 7. 정렬 기능 ══════════════ -->
+  <section class="slide" id="s7">
+    <div style="max-width:860px; width:100%;">
+      <span class="tag tag-green" style="margin-bottom:16px; display:inline-block;">Feature 2</span>
+      <h2>정렬 기능</h2>
+      <div class="accent-line"></div>
+      <div class="grid2" style="margin-top:12px;">
+        <div class="card" style="border-color: rgba(79,110,247,0.4);">
+          <div class="icon">🕐</div>
+          <h3 style="color:#818cf8;">최신순 (newest)</h3>
+          <p style="margin-bottom:14px;">가장 최근에 등록한 단어가 먼저 표시됩니다.</p>
+          <div class="code-block" style="font-size:0.78rem;">
+Sort.<span class="g">by</span>(Direction.<span class="t">DESC</span>,
+     <span class="s">"createdAt"</span>)
+          </div>
+        </div>
+        <div class="card" style="border-color: rgba(52,211,153,0.4);">
+          <div class="icon">🔤</div>
+          <h3 style="color:var(--green);">알파벳순 (alpha)</h3>
+          <p style="margin-bottom:14px;">단어를 A–Z 알파벳 오름차순으로 정렬합니다.</p>
+          <div class="code-block" style="font-size:0.78rem;">
+Sort.<span class="g">by</span>(Direction.<span class="t">ASC</span>,
+     <span class="s">"word"</span>)
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px;">
+        <p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:10px;">🔄 요청 흐름</p>
+        <div class="flow-row">
+          <div class="flow-box">정렬 버튼 클릭</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">hidden input 변경</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">GET /?sort=alpha&q=...</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">Controller → Service</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">DB Sort 쿼리</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">Thymeleaf 렌더링</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 8. 단어 추가 ══════════════ -->
+  <section class="slide" id="s8">
+    <div style="max-width:900px; width:100%; display:grid; grid-template-columns:1fr 1fr; gap:28px;">
+      <div>
+        <span class="tag tag-yellow" style="margin-bottom:16px; display:inline-block;">Feature 3</span>
+        <h2>단어 추가</h2>
+        <div class="accent-line"></div>
+        <ul class="check-list" style="margin-top:10px;">
+          <li>우하단 <strong>＋ FAB 버튼</strong>으로 모달 열기</li>
+          <li>영어 단어, 품사, 발음기호, 뜻, 예문 입력</li>
+          <li><strong>@NotBlank</strong> 유효성 검사 (단어·뜻 필수)</li>
+          <li>POST /words → DB 저장 → redirect:/</li>
+          <li><strong>PRG 패턴</strong>으로 새로고침 중복 방지</li>
+        </ul>
+        <div style="margin-top:16px;">
+          <p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:10px;">PRG 패턴 흐름</p>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div class="flow-box" style="text-align:left; padding:8px 16px; font-size:0.82rem;">1️⃣  POST /words (폼 제출)</div>
+            <div class="flow-box" style="text-align:left; padding:8px 16px; font-size:0.82rem; border-color:var(--green); color:var(--green);">2️⃣  DB 저장 (wordRepository.save)</div>
+            <div class="flow-box" style="text-align:left; padding:8px 16px; font-size:0.82rem; border-color:var(--yellow); color:var(--yellow);">3️⃣  redirect:/ (302 응답)</div>
+            <div class="flow-box" style="text-align:left; padding:8px 16px; font-size:0.82rem; border-color:var(--purple); color:var(--purple);">4️⃣  GET / → Thymeleaf 렌더링</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:0.78rem; color:var(--text-sub); margin-bottom:8px; font-weight:700; margin-top:48px;">📝 WordController.java</p>
+        <div class="code-block" style="font-size:0.78rem;">
+<span class="k">@GetMapping</span>(<span class="s">"/"</span>)
+<span class="k">public</span> String <span class="g">index</span>(
+    <span class="k">@RequestParam</span> String q,
+    <span class="k">@RequestParam</span> String sort,
+    Model model) {
+  model.<span class="g">addAttribute</span>(<span class="s">"words"</span>,
+      wordService.<span class="g">searchAndSort</span>(q, sort));
+  <span class="k">return</span> <span class="s">"index"</span>;
+}
+
+<span class="k">@PostMapping</span>(<span class="s">"/words"</span>)
+<span class="k">public</span> String <span class="g">addWord</span>(
+    <span class="k">@Valid @ModelAttribute</span> WordForm form) {
+  wordService.<span class="g">save</span>(form);
+  <span class="k">return</span> <span class="s">"redirect:/"</span>; <span class="c">// PRG</span>
+}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 9. Thymeleaf ══════════════ -->
+  <section class="slide" id="s9">
+    <div style="max-width:900px; width:100%; display:grid; grid-template-columns:1fr 1fr; gap:28px;">
+      <div>
+        <span class="tag tag-purple" style="margin-bottom:16px; display:inline-block;">View Layer</span>
+        <h2>Thymeleaf 템플릿</h2>
+        <div class="accent-line"></div>
+        <ul class="check-list" style="margin-top:10px;">
+          <li><code style="color:var(--yellow);">th:each</code> — 단어 카드 반복 렌더링</li>
+          <li><code style="color:var(--yellow);">th:utext</code> — 하이라이트 HTML 출력</li>
+          <li><code style="color:var(--yellow);">th:action="@{/words}"</code> — POST 폼</li>
+          <li><code style="color:var(--yellow);">th:classappend</code> — 정렬 버튼 active 상태</li>
+          <li><code style="color:var(--yellow);">th:if / #strings</code> — 조건부 렌더링</li>
+          <li>모든 단어 카드는 <strong>서버(DB)</strong>에서 렌더링</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-size:0.78rem; color:var(--text-sub); margin-bottom:8px; font-weight:700; margin-top:48px;">📝 index.html (카드 반복)</p>
+        <div class="code-block" style="font-size:0.78rem;">
+<span class="c">&lt;!-- 단어 카드 --&gt;</span>
+&lt;<span class="t">div</span> <span class="k">th:each</span>=<span class="s">"word : ${words}"</span>
+     class=<span class="s">"word-card"</span>&gt;
+  &lt;<span class="t">div</span> class=<span class="s">"word-en"</span>
+       <span class="k">th:utext</span>=<span class="s">"${word.wordHtml()}"</span>&gt;
+  &lt;/<span class="t">div</span>&gt;
+  &lt;<span class="t">span</span> class=<span class="s">"word-pos"</span>
+        <span class="k">th:text</span>=<span class="s">"${word.posLabel()}"</span>&gt;
+  &lt;/<span class="t">span</span>&gt;
+  &lt;<span class="t">div</span> <span class="k">th:utext</span>=<span class="s">"${word.koHtml()}"</span>&gt;&lt;/<span class="t">div</span>&gt;
+  &lt;<span class="t">div</span> <span class="k">th:utext</span>=<span class="s">"${word.exampleHtml()}"</span>&gt;
+  &lt;/<span class="t">div</span>&gt;
+&lt;/<span class="t">div</span>&gt;
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ 10. 마무리 ══════════════ -->
+  <section class="slide" id="s10">
+    <div style="text-align:center; max-width:700px;">
+      <span class="tag tag-pink" style="margin-bottom:24px; display:inline-block;">Summary</span>
+      <h2>핵심 정리</h2>
+      <div class="accent-line" style="margin: 16px auto 28px;"></div>
+      <div class="grid3" style="text-align:left; margin-bottom:32px;">
+        <div class="card">
+          <div class="icon">🏗️</div>
+          <h3>레이어드 아키텍처</h3>
+          <p>Controller → Service → Repository 명확한 역할 분리</p>
+        </div>
+        <div class="card">
+          <div class="icon">🔎</div>
+          <h3>LIKE 검색 최적화</h3>
+          <p>Hibernate 6 ESCAPE '' 이슈를 Java 레이어에서 해결</p>
+        </div>
+        <div class="card">
+          <div class="icon">🖥️</div>
+          <h3>SSR Thymeleaf</h3>
+          <p>모든 렌더링은 서버 DB 결과 기반, JS는 UI 조작만 담당</p>
+        </div>
+      </div>
+      <p style="font-size:1.1rem; color:var(--text-sub);">
+        감사합니다 🎉
+      </p>
+      <p style="margin-top:10px; font-size:0.85rem; color: var(--border);">
+        localhost:8080 &nbsp;·&nbsp; H2 Console: /h2-console
+      </p>
+    </div>
+  </section>
+
+</div><!-- /deck -->
+
+<!-- 네비게이션 -->
+<div class="nav">
+  <button id="prevBtn" disabled>&#8592;</button>
+  <button id="nextBtn">&#8594;</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total  = slides.length;
+  let current  = 0;
+
+  const dotsEl    = document.getElementById('dots');
+  const progressEl= document.getElementById('progressBar');
+  const slideNumEl= document.getElementById('slideNum');
+  const prevBtn   = document.getElementById('prevBtn');
+  const nextBtn   = document.getElementById('nextBtn');
+
+  /* 점 생성 */
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= total) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('prev');
+
+    setTimeout(() => slides[current < idx ? current : idx]
+      .classList.remove('prev'), 600);
+
+    if (idx < current) {
+      slides[current].style.transform = 'translateX(100%)';
+      slides[idx].style.transform = 'translateX(-100%)';
+      setTimeout(() => {
+        slides[current].style.transform = '';
+        slides[idx].style.transform = '';
+        slides[idx].classList.add('active');
+      }, 20);
+    }
+
+    current = idx;
+    slides[current].classList.remove('prev');
+    slides[current].classList.add('active');
+
+    update();
+  }
+
+  /* 앞/뒤 슬라이드 전환 처리 */
+  function update() {
+    const dots = dotsEl.querySelectorAll('.dot');
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    progressEl.style.width = ((current + 1) / total * 100) + '%';
+    slideNumEl.textContent  = (current + 1) + ' / ' + total;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+
+    /* 역방향 슬라이드 애니메이션 초기화 */
+    slides.forEach((s, i) => {
+      if (i !== current) {
+        s.style.transform = i < current ? 'translateX(-100%)' : 'translateX(100%)';
+      } else {
+        s.style.transform = '';
+      }
+    });
+  }
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+
+  /* 키보드 */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')  { e.preventDefault(); goTo(current - 1); }
+  });
+
+  /* 터치 스와이프 */
+  let touchX = 0;
+  document.addEventListener('touchstart', e => touchX = e.touches[0].clientX);
+  document.addEventListener('touchend',   e => {
+    const dx = touchX - e.changedTouches[0].clientX;
+    if (Math.abs(dx) > 50) dx > 0 ? goTo(current + 1) : goTo(current - 1);
+  });
+
+  update();
+</script>
+</body>
+</html>
