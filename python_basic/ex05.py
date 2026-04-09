@@ -3,7 +3,7 @@
 # 변수 Variable
 #   숫자 Number
 # 정수형 : int
-from typing import Literal
+from typing import Any, Literal
 
 
 from turtle import st
@@ -60,3 +60,24 @@ result = None
 print(type(result))  # <class 'NoneType'>
 if result == None:
     print("결과값 없음.")
+
+# 타입 힌트(Hint)
+# 파이썬 3.5부터 지원, 코드 실행에는 영향이 없고, 가독성과 정적 분석
+# 에 사용됨. AI가 맥락을 파악하고 정확한 코드를 생성하는데 도움.
+# 대신 토큰을 더 많이 소비한다.
+# (JavaScript => TypeScript AI가 더 정확)
+# 정적타입 언어 : Java, C/C++, TS, Python+타입힌트
+name: str = "홍길동"
+age: int = 25
+height: float = 175.5
+is_good: bool = True
+
+# 콜렉션 타입은 임포트해야 됨.
+from typing import List, Dict, Tuple, Set
+
+scores: List[int] = [70, 80, 90]
+student: Dict[str, Any] = {"국어", 90, "영어", 80.5}
+# Any : 어떤 타입이 들어와도 되는 타입(모든 타입)
+#     : 자바 다형성(Object)
+point: Tuple[int, int] = (10, 20)
+fruits: Set[str] = {"사과", "배", "사과"}
