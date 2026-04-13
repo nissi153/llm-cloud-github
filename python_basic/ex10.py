@@ -42,3 +42,11 @@ for i in range(1, 11):
 # 입력: 12345 → 출력: "5자리 숫자입니다"
 # 입력: 789 → 출력: "3자리 숫자입니다"
 # 힌트: 숫자를 10으로 나누면서 0이 될 때까지 반복
+n: int = int(input("숫자 입력"))
+length = 1
+while True:
+    n = n // 10
+    if n == 0:
+        break
+    length += 1
+print(f"{length}자리 숫자입니다.")
