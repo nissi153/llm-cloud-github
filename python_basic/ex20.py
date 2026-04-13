@@ -20,3 +20,16 @@ data = {
 # 데이터프레임(Data Frame) 객체 생성
 df = pd.DataFrame(data)
 print(df)
+
+# CSV 파일로 저장하기
+df.to_csv("people_pandas.csv", index=False, encoding="utf-8")
+print("CSV 파일 저장 완료")
+
+# CSV파일을 읽어서 데이터프레임으로 가져오기
+# utf-8-sig : 이모지 지원
+df = pd.read_csv("people_pandas.csv", encoding="utf-8-sig")
+print(df)
+print("CSV 파일 읽기 완료")
+
+# 판다스 데이터프레임 : 2차원 데이터(행열)의 데이터를 다루기 쉽다.
+# 변수,상수,리스트-튜플,배열,맵(dict,js obj),집합
