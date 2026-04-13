@@ -31,3 +31,9 @@ with open("people.csv", "r", encoding="utf-8") as f:
     reader = csv.reader(f)
     for row in reader:
         print(row)
+'''
+['이름', '나이', '도시']
+['홍길동', '30', '서울']
+['김철수', '25', '인천']
+['이영희', '30', '수원']
+'''
