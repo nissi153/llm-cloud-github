@@ -53,6 +53,7 @@ def main():
 
     print("CSV 저장 완료")
     print("JSON 저장 완료")
+    print(f"총 {len(data)}개의 기사를 수집했습니다.")
 
 
 # 현재 파일에서 실행되었는지?

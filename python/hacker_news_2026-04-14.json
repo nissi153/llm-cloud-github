@@ -60,12 +60,12 @@
     "link": "https://duckdb.org/library/design-and-implementation-of-duckdb-internals/"
   },
   {
-    "title": "Nothing Ever Happens: Polymarket bot that always buys No on non-sports markets",
-    "link": "https://github.com/sterlingcrispin/nothing-ever-happens"
-  },
-  {
     "title": "Multi-Agentic Software Development Is a Distributed Systems Problem",
     "link": "https://kirancodes.me/posts/log-distributed-llms.html"
+  },
+  {
+    "title": "Nothing Ever Happens: Polymarket bot that always buys No on non-sports markets",
+    "link": "https://github.com/sterlingcrispin/nothing-ever-happens"
   },
   {
     "title": "Rust Threads on the GPU",
@@ -108,15 +108,15 @@
     "link": "https://blog.cloudflare.com/cf-cli-local-explorer/"
   },
   {
+    "title": "Math Is Still Catching Up to the Mysterious Genius of Srinivasa Ramanujan (2024)",
+    "link": "https://www.quantamagazine.org/srinivasa-ramanujan-was-a-genius-math-is-still-catching-up-20241021/"
+  },
+  {
     "title": "Android now stops you sharing your location in photos",
     "link": "https://shkspr.mobi/blog/2026/04/android-now-stops-you-sharing-your-location-in-photos/"
   },
   {
     "title": "I just want simple S3",
     "link": "https://blog.feld.me/posts/2026/04/i-just-want-simple-s3/"
-  },
-  {
-    "title": "Math Is Still Catching Up to the Mysterious Genius of Srinivasa Ramanujan (2024)",
-    "link": "https://www.quantamagazine.org/srinivasa-ramanujan-was-a-genius-math-is-still-catching-up-20241021/"
   }
 ]
