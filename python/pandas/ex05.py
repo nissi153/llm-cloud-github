@@ -23,3 +23,14 @@ plt.ylabel("도서 수")
 plt.tight_layout()
 plt.savefig("category_count.png")
 plt.show()
+
+# 가격 분포 히스토그램
+plt.figure()  # 리셋
+#  bins=10 : 최솟값 ~ 최대값 범위를 10개로 나누어 빈도수를 막대로 표시
+df["가격"].plot(kind="hist", bins=10, color="orange", edgecolor="black")
+plt.title("도서 가격 분포")
+plt.xlabel("가격")
+plt.ylabel("도서 수")
+# plt.tight_layout()
+plt.savefig("price_hist.png")
+plt.show()
