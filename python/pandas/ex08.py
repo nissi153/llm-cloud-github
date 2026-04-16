@@ -21,7 +21,7 @@ if "출간연도" in df.columns:
 
     # 연도별 평균 가격
     year_price = df.groupby("출간연도")["가격"].mean()
-    year_price.plot(kind="line", marker="s", color="red")  # s 정사각형
+    year_price.plot(kind="line", marker="*", color="red")  # s 정사각형
     plt.title("연도별 평균 도서 가격")
     plt.xlabel("출간연도")
     plt.ylabel("평균 가격")
