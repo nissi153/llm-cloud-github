@@ -10,6 +10,11 @@ from datetime import date, timedelta
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from dotenv import load_dotenv
+from google import genai
+from google.genai import types
+
+load_dotenv()
 
 DB_FILE = os.path.join(os.path.dirname(__file__), "..", "inflearn_courses.db")
 
@@ -37,6 +42,55 @@ def load_courses():
     df["price_num"] = df["sale_price"].apply(parse_price)
     df["revenue"] = df["sub_num"] * df["price_num"]
     return df
+
+
+@st.cache_resource
+def get_gemini_client():
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return None
+    return genai.Client(api_key=api_key)
+
+
+def generate_insight(topic: str, data_markdown: str, extra_context: str = "") -> str:
+    client = get_gemini_client()
+    if client is None:
+        return "⚠️ GEMINI_API_KEY가 설정되지 않았습니다 (.env 확인)."
+    prompt = f"""당신은 온라인 교육 시장 데이터 애널리스트입니다.
+인프런(Inflearn) 강의 데이터의 '{topic}' 분석 결과가 아래와 같습니다.
+
+{extra_context}
+
+[데이터]
+{data_markdown}
+
+위 결과를 바탕으로 한국어로 3~5개의 핵심 인사이트를 불릿 포인트로 제시하세요.
+- 숫자와 고유명사(강사명, 강의명, 카테고리)를 구체적으로 인용하세요.
+- 시장 트렌드, 패턴, 주목할 만한 이상치(outlier)를 짚어주세요.
+- 마지막에 '💡 추천/시사점' 한 줄을 덧붙이세요.
+- 간결하되 근거가 보이게 작성하세요."""
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+        return response.text
+    except Exception as e:
+        return f"⚠️ Gemini 호출 실패: {e}"
+
+
+def render_insight_section(key: str, topic: str, data_markdown: str, extra: str = ""):
+    with st.expander(f"🤖 {topic} AI 인사이트", expanded=False):
+        cache_key = f"insight_{key}"
+        if st.button("인사이트 생성", key=f"btn_{key}"):
+            with st.spinner("Gemini 분석 중..."):
+                st.session_state[cache_key] = generate_insight(
+                    topic, data_markdown, extra
+                )
+        if cache_key in st.session_state:
+            st.markdown(st.session_state[cache_key])
+        else:
+            st.caption("버튼을 누르면 Gemini가 위 데이터를 분석합니다.")
 
 
 st.set_page_config(page_title="인프런 강의 분석", layout="wide")
@@ -96,6 +150,13 @@ with tab1:
     fig1.update_layout(height=550)
     st.plotly_chart(fig1, use_container_width=True)
 
+    render_insight_section(
+        key="top_courses",
+        topic="인기 강의 Top",
+        data_markdown=top_courses.head(15).to_string(),
+        extra=f"필터: 제외 강사 {excluded_authors or '없음'} / Top {top_n}",
+    )
+
 # 2) 매출 Top N 강사
 with tab2:
     st.subheader(f"가장 돈 많이 번 강사 Top {top_n} (구독자수 × 할인가 합계)")
@@ -127,6 +188,13 @@ with tab2:
     fig2.update_traces(textinfo="label+value")
     fig2.update_layout(height=600)
     st.plotly_chart(fig2, use_container_width=True)
+
+    render_insight_section(
+        key="revenue",
+        topic="매출 상위 강사",
+        data_markdown=display.head(15).to_string(),
+        extra=f"매출 = 구독자수 × 할인가 합계 추정 / 제외 강사: {excluded_authors or '없음'}",
+    )
 
 # 3) 인기 카테고리 Top 10
 with tab3:
@@ -174,6 +242,13 @@ with tab3:
     fig3.update_layout(height=650)
     st.plotly_chart(fig3, use_container_width=True)
 
+    render_insight_section(
+        key="category",
+        topic="인기 카테고리",
+        data_markdown=cat_display.to_string(),
+        extra=f"구독자 합계 기준 / 제외 강사: {excluded_authors or '없음'}",
+    )
+
 # 4) 최근 N개월 인기 강의
 with tab4:
     today = date.today()
@@ -190,6 +265,13 @@ with tab4:
     recent.index += 1
     recent.columns = ["강의명", "강사", "구독자", "출시일", "카테고리"]
     st.dataframe(recent, use_container_width=True, height=600)
+
+    render_insight_section(
+        key="recent",
+        topic=f"최근 {recent_months}개월 신규 인기 강의",
+        data_markdown=recent.head(15).to_string(),
+        extra=f"출시일 {since} ~ {today.isoformat()} / 제외 강사: {excluded_authors or '없음'}",
+    )
 
 # 하단 요약 지표
 st.divider()
