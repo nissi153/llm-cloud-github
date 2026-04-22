@@ -19,6 +19,7 @@ next_id = 4
 # 전체 학생 조회
 @app.route("/students", methods=["GET"])
 def get_students():
+    # jsonify : 딕셔너리 객체를 JSON문자열로 만들어주는 함수
     return jsonify(list(students.values())), 200
 
 
@@ -62,11 +63,13 @@ def update_student(student_id):
     if not data or not all(k in data for k in ("name", "grade", "age")):
         return jsonify({"error": "name, grade, age 필드가 필요합니다"}), 400
 
-    students[student_id].update({
-        "name": data["name"],
-        "grade": data["grade"],
-        "age": data["age"],
-    })
+    students[student_id].update(
+        {
+            "name": data["name"],
+            "grade": data["grade"],
+            "age": data["age"],
+        }
+    )
     return jsonify(students[student_id]), 200
 
 
