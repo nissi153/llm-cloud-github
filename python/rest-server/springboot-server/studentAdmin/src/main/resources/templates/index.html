@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
+
+    header {
+      background: #1e293b; color: #fff;
+      padding: 18px 32px; display: flex; align-items: center; gap: 12px;
+    }
+    header h1 { font-size: 1.3rem; font-weight: 600; }
+    header .badge { font-size: 0.8rem; background: #3b82f6; padding: 3px 10px; border-radius: 12px; }
+
+    .container { max-width: 1100px; margin: 32px auto; padding: 0 16px; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 8px 20px; border: none; border-radius: 6px;
+      background: #fff; cursor: pointer; font-size: 0.9rem;
+      border: 2px solid transparent; transition: all 0.2s;
+    }
+    .tab-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+    .tab-btn.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: #fff; border-radius: 10px; padding: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px;
+    }
+    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: #1e293b; }
+
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 0.78rem; color: #64748b; font-weight: 500; }
+    .form-group input {
+      padding: 8px 12px; border: 1px solid #cbd5e1;
+      border-radius: 6px; font-size: 0.9rem; width: 160px;
+    }
+    .form-group input:focus { outline: none; border-color: #3b82f6; }
+
+    .btn {
+      padding: 8px 20px; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: background 0.2s;
+    }
+    .btn-blue   { background: #3b82f6; color: #fff; }  .btn-blue:hover   { background: #2563eb; }
+    .btn-green  { background: #10b981; color: #fff; }  .btn-green:hover  { background: #059669; }
+    .btn-yellow { background: #f59e0b; color: #fff; }  .btn-yellow:hover { background: #d97706; }
+    .btn-red    { background: #ef4444; color: #fff; }  .btn-red:hover    { background: #dc2626; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    thead tr { background: #f8fafc; }
+    th { padding: 10px 14px; text-align: left; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; }
+    td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; }
+    tr:hover td { background: #f8fafc; }
+
+    .response-box {
+      background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 16px;
+      font-family: 'Consolas', monospace; font-size: 0.85rem;
+      min-height: 80px; white-space: pre-wrap; word-break: break-all; margin-top: 14px;
+    }
+    .badge-ok  { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.75rem; font-weight:600; background:#d1fae5; color:#065f46; margin-bottom:6px; }
+    .badge-err { display:inline-block; padding:2px 10px; border-radius:12px; font-size:0.75rem; font-weight:600; background:#fee2e2; color:#991b1b; margin-bottom:6px; }
+
+    .refresh-btn { float: right; margin-top: -4px; }
+    .hint { font-size:0.82rem; color:#64748b; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Student Admin</h1>
+  <span class="badge">Spring Boot :8080 → Python FastAPI :8000</span>
+</header>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('tab-list',   this)">전체 조회</button>
+    <button class="tab-btn"        onclick="switchTab('tab-get',    this)">단건 조회</button>
+    <button class="tab-btn"        onclick="switchTab('tab-create', this)">학생 등록</button>
+    <button class="tab-btn"        onclick="switchTab('tab-put',    this)">전체 수정 (PUT)</button>
+    <button class="tab-btn"        onclick="switchTab('tab-patch',  this)">부분 수정 (PATCH)</button>
+    <button class="tab-btn"        onclick="switchTab('tab-delete', this)">삭제</button>
+  </div>
+
+  <!-- ① 전체 조회 -->
+  <div id="tab-list" class="panel active">
+    <div class="card">
+      <h2>전체 학생 목록
+        <button class="btn btn-blue refresh-btn" onclick="loadAll()">새로고침</button>
+      </h2>
+      <table>
+        <thead><tr><th>ID</th><th>이름</th><th>학년</th><th>나이</th></tr></thead>
+        <tbody id="student-tbody"></tbody>
+      </table>
+      <div id="res-list" class="response-box">버튼을 눌러 조회하세요.</div>
+    </div>
+  </div>
+
+  <!-- ② 단건 조회 -->
+  <div id="tab-get" class="panel">
+    <div class="card">
+      <h2>특정 학생 조회 — GET /api/students/{id}</h2>
+      <div class="form-row">
+        <div class="form-group"><label>학생 ID</label><input type="number" id="get-id" placeholder="1" min="1"></div>
+        <button class="btn btn-blue" onclick="getStudent()">조회</button>
+      </div>
+      <div id="res-get" class="response-box">결과가 여기에 표시됩니다.</div>
+    </div>
+  </div>
+
+  <!-- ③ 학생 등록 -->
+  <div id="tab-create" class="panel">
+    <div class="card">
+      <h2>학생 등록 — POST /api/students</h2>
+      <div class="form-row">
+        <div class="form-group"><label>이름</label><input type="text"   id="create-name"  placeholder="홍길동"></div>
+        <div class="form-group"><label>학년</label><input type="number" id="create-grade" placeholder="1" min="1" max="3"></div>
+        <div class="form-group"><label>나이</label><input type="number" id="create-age"   placeholder="15" min="1"></div>
+        <button class="btn btn-green" onclick="createStudent()">등록</button>
+      </div>
+      <div id="res-create" class="response-box">결과가 여기에 표시됩니다.</div>
+    </div>
+  </div>
+
+  <!-- ④ 전체 수정 PUT -->
+  <div id="tab-put" class="panel">
+    <div class="card">
+      <h2>전체 수정 — PUT /api/students/{id}</h2>
+      <p class="hint">name · grade · age 모두 필수입니다.</p>
+      <div class="form-row">
+        <div class="form-group"><label>학생 ID</label><input type="number" id="put-id"    placeholder="1"    min="1"></div>
+        <div class="form-group"><label>이름</label>   <input type="text"   id="put-name"  placeholder="홍길동"></div>
+        <div class="form-group"><label>학년</label>   <input type="number" id="put-grade" placeholder="2"    min="1" max="3"></div>
+        <div class="form-group"><label>나이</label>   <input type="number" id="put-age"   placeholder="16"   min="1"></div>
+        <button class="btn btn-yellow" onclick="putStudent()">수정</button>
+      </div>
+      <div id="res-put" class="response-box">결과가 여기에 표시됩니다.</div>
+    </div>
+  </div>
+
+  <!-- ⑤ 부분 수정 PATCH -->
+  <div id="tab-patch" class="panel">
+    <div class="card">
+      <h2>부분 수정 — PATCH /api/students/{id}</h2>
+      <p class="hint">변경할 필드만 입력하세요. 빈 칸은 무시됩니다.</p>
+      <div class="form-row">
+        <div class="form-group"><label>학생 ID</label>    <input type="number" id="patch-id"    placeholder="1"       min="1"></div>
+        <div class="form-group"><label>이름 (선택)</label> <input type="text"   id="patch-name"  placeholder="변경할 이름"></div>
+        <div class="form-group"><label>학년 (선택)</label> <input type="number" id="patch-grade" placeholder=""        min="1" max="3"></div>
+        <div class="form-group"><label>나이 (선택)</label> <input type="number" id="patch-age"   placeholder=""        min="1"></div>
+        <button class="btn btn-yellow" onclick="patchStudent()">수정</button>
+      </div>
+      <div id="res-patch" class="response-box">결과가 여기에 표시됩니다.</div>
+    </div>
+  </div>
+
+  <!-- ⑥ 삭제 -->
+  <div id="tab-delete" class="panel">
+    <div class="card">
+      <h2>학생 삭제 — DELETE /api/students/{id}</h2>
+      <div class="form-row">
+        <div class="form-group"><label>학생 ID</label><input type="number" id="delete-id" placeholder="1" min="1"></div>
+        <button class="btn btn-red" onclick="deleteStudent()">삭제</button>
+      </div>
+      <div id="res-delete" class="response-box">결과가 여기에 표시됩니다.</div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  const BASE = '/api/students';
+
+  /* 탭 전환 */
+  function switchTab(id, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  /* 응답 박스 출력 */
+  function showResult(boxId, status, data) {
+    const box  = document.getElementById(boxId);
+    const ok   = status >= 200 && status < 300;
+    const badge = `<span class="${ok ? 'badge-ok' : 'badge-err'}">${status} ${ok ? 'OK' : 'Error'}</span>\n`;
+    box.innerHTML = badge + JSON.stringify(data, null, 2);
+  }
+
+  /* fetch 공통 래퍼 */
+  async function api(method, url, body = null) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const res  = await fetch(url, opts);
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); } catch { json = text; }
+    return { status: res.status, data: json };
+  }
+
+  /* ① 전체 조회 */
+  async function loadAll() {
+    const { status, data } = await api('GET', BASE);
+    showResult('res-list', status, data);
+    const tbody = document.getElementById('student-tbody');
+    tbody.innerHTML = '';
+    if (Array.isArray(data)) {
+      data.forEach(s => {
+        tbody.innerHTML +=
+          `<tr><td>${s.id}</td><td>${s.name}</td><td>${s.grade}학년</td><td>${s.age}세</td></tr>`;
+      });
+    }
+  }
+
+  /* ② 단건 조회 */
+  async function getStudent() {
+    const id = document.getElementById('get-id').value;
+    if (!id) return alert('학생 ID를 입력하세요.');
+    const { status, data } = await api('GET', `${BASE}/${id}`);
+    showResult('res-get', status, data);
+  }
+
+  /* ③ 등록 */
+  async function createStudent() {
+    const name  = document.getElementById('create-name').value;
+    const grade = parseInt(document.getElementById('create-grade').value);
+    const age   = parseInt(document.getElementById('create-age').value);
+    if (!name || !grade || !age) return alert('모든 필드를 입력하세요.');
+    const { status, data } = await api('POST', BASE, { name, grade, age });
+    showResult('res-create', status, data);
+    if (status === 201) loadAll();
+  }
+
+  /* ④ 전체 수정 PUT */
+  async function putStudent() {
+    const id    = document.getElementById('put-id').value;
+    const name  = document.getElementById('put-name').value;
+    const grade = parseInt(document.getElementById('put-grade').value);
+    const age   = parseInt(document.getElementById('put-age').value);
+    if (!id || !name || !grade || !age) return alert('모든 필드를 입력하세요.');
+    const { status, data } = await api('PUT', `${BASE}/${id}`, { name, grade, age });
+    showResult('res-put', status, data);
+  }
+
+  /* ⑤ 부분 수정 PATCH */
+  async function patchStudent() {
+    const id = document.getElementById('patch-id').value;
+    if (!id) return alert('학생 ID를 입력하세요.');
+    const body  = {};
+    const name  = document.getElementById('patch-name').value;
+    const grade = document.getElementById('patch-grade').value;
+    const age   = document.getElementById('patch-age').value;
+    if (name)  body.name  = name;
+    if (grade) body.grade = parseInt(grade);
+    if (age)   body.age   = parseInt(age);
+    if (!Object.keys(body).length) return alert('변경할 필드를 하나 이상 입력하세요.');
+    const { status, data } = await api('PATCH', `${BASE}/${id}`, body);
+    showResult('res-patch', status, data);
+  }
+
+  /* ⑥ 삭제 */
+  async function deleteStudent() {
+    const id = document.getElementById('delete-id').value;
+    if (!id) return alert('학생 ID를 입력하세요.');
+    if (!confirm(`ID ${id} 학생을 삭제하시겠습니까?`)) return;
+    const { status, data } = await api('DELETE', `${BASE}/${id}`);
+    showResult('res-delete', status, data);
+    if (status === 200) loadAll();
+  }
+
+  // 페이지 로드 시 목록 자동 조회
+  window.onload = loadAll;
+</script>
+</body>
+</html>
