@@ -3,3 +3,5 @@ desktop.ini
 node_modules
 .env
 .next
+
+mysql_data
